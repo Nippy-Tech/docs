@@ -1,7 +1,7 @@
 ---
 title: "Supply"
 description: "Gestión de inventario: stock global, niveles por Nippy Center, alertas, retiros y centros de distribución"
-icon: "boxes-stacking"
+icon: "box"
 ---
 
 ## Ejemplos de lo que puedes preguntarle a tu agente
@@ -89,8 +89,6 @@ Lista todos los items donde el stock actual está por debajo del umbral mínimo 
 ### `supply_get_withdrawal_history`
 
 Lista el historial de retiros de supply para este negocio en un rango de fechas.
-
-Los retiros se encuentran indirectamente: primero se resuelven los Nippy Centers del negocio, luego se consultan los `userstocks` por esos centros.
 
 <ParamField body="date_from" type="string" default="''">
   Fecha de inicio en formato ISO 8601, e.g. `"2026-01-01"`. Opcional.
@@ -386,7 +384,7 @@ Verifica que:
 
 ### `supply_approve_withdrawal`
 
-Ejecuta el retiro. Decrementa atómicamente el stock en el Nippy Center y crea el registro `userstock`. Mismos parámetros que `propose_withdrawal`.
+Ejecuta el retiro. Decrementa el stock en el Nippy Center y registra la entrega. Mismos parámetros que `propose_withdrawal`.
 
 <Warning>
   Solo llama esta tool después de mostrar el preview de `propose_withdrawal` y recibir confirmación explícita. Esta operación es atómica e irreversible.
@@ -407,10 +405,12 @@ Ejecuta el retiro. Decrementa atómicamente el stock en el Nippy Center y crea e
 6. supply_approve_withdrawal          → ejecutar retiro (decrementa stock + crea registro)
 ```
 
-## Recursos de supply
+<Accordion title="Detalles técnicos (avanzado)">
+  Referencias de esquemas para el agente:
 
-| URI | Nombre | Contenido |
-|-----|--------|-----------|
-| `nippy://supply/schema/stock` | `supply_stock_schema` | Referencia campo-por-campo de stock global y stock por centro |
-| `nippy://supply/schema/withdrawals` | `supply_withdrawal_schema` | Tipos de retiro, campos de `UserStock` y reglas de flujo |
-| `nippy://supply/schema/centers` | `supply_nippy_center_schema` | Referencia de documentos de Nippy Center y scheduling |
+  | URI | Nombre | Descripción |
+  |-----|--------|-------------|
+  | `nippy://supply/schema/stock` | `supply_stock_schema` | Campos de stock global y stock por centro |
+  | `nippy://supply/schema/withdrawals` | `supply_withdrawal_schema` | Tipos de retiro y reglas de flujo |
+  | `nippy://supply/schema/centers` | `supply_nippy_center_schema` | Campos de Nippy Center y scheduling |
+</Accordion>

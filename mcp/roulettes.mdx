@@ -155,10 +155,7 @@ Genera un preview de la configuración de una ruleta. **No escribe a la base de 
   - `value` (string, requerido): nombre mostrado en la rueda
   - `message` (string, requerido): mensaje mostrado al ganar
   - `probability` (float, requerido): peso relativo (e.g. `80` = 80% de peso relativo entre todos los gifts)
-  - `typeOfGift` (object, requerido): `{"name": "...", "_id": "..."}` — **debe usar los IDs del catálogo de `nippy://roulettes/schema/gifts`.** Valores válidos:
-    - Porcentaje — `_id: "6342f530705c91dcbe8aba8b"`
-    - Perder — `_id: "634f356e33e5c76785516a2c"`
-    - Points — `_id: "68b86722b5a6eee84f241985"`
+  - `typeOfGift` (object, requerido): `{"name": "...", "_id": "..."}` — tipo de premio. El agente consulta automáticamente el catálogo de tipos disponibles.
   - `emoji` (string, opcional): emoji decorativo
   - `quantity` (int, opcional): unidades disponibles. Requerido para premios físicos
   - `item_id` (string, opcional): `_id` de `list_roulette_items` — solo para premios físicos. No confundir con `typeOfGift._id`
@@ -278,12 +275,22 @@ Crea una nueva ruleta para este negocio. Mismos parámetros que `propose_roulett
 
 ---
 
-## Recursos de roulettes
+<Accordion title="Detalles técnicos (avanzado)">
+  Referencias de esquemas para el agente:
 
-| URI | Nombre | Contenido |
-|-----|--------|-----------|
-| `nippy://roulettes/schema/gifts` | `roulettes_gift_types` | Catálogo de valores `typeOfGift`, opciones de `typeOfRoulette` y referencia de campos |
-| `nippy://roulettes/schema/fields` | `roulettes_field_reference` | Referencia campo-por-campo de documentos de ruleta e items |
+  | URI | Nombre | Descripción |
+  |-----|--------|-------------|
+  | `nippy://roulettes/schema/gifts` | `roulettes_gift_types` | Catálogo de valores `typeOfGift` y opciones de `typeOfRoulette` |
+  | `nippy://roulettes/schema/fields` | `roulettes_field_reference` | Campos de documentos de ruleta e items |
+
+  **IDs del catálogo de `typeOfGift`:**
+
+  | Tipo | `_id` |
+  |------|-------|
+  | Porcentaje | `6342f530705c91dcbe8aba8b` |
+  | Perder | `634f356e33e5c76785516a2c` |
+  | Points | `68b86722b5a6eee84f241985` |
+</Accordion>
 
 ## Notas importantes
 

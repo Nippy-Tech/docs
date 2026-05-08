@@ -1,6 +1,6 @@
 ---
 title: "Analytics"
-description: "Ejecuta pipelines de agregación MongoDB contra las vistas materializadas de Nippy"
+description: "Consulta tus datos de ruletas, supply, cursos y más en lenguaje natural"
 icon: "chart-bar"
 ---
 
@@ -12,41 +12,37 @@ icon: "chart-bar"
 - "¿Cuántos asistentes tuvo cada centro este trimestre?"
 - "Muéstrame la evolución diaria de premios canjeados en mayo"
 
-Con Analytics, tú haces la pregunta en español y tu agente construye el pipeline de MongoDB, lo ejecuta contra tus datos y te da los resultados. No necesitas saber de bases de datos — aunque si sabes, también puedes escribir el pipeline tú mismo.
+Con Analytics, tú haces la pregunta en español y tu agente la convierte en la consulta adecuada contra tus datos. No necesitas saber de bases de datos — tu agente se encarga de todo.
 
-**Lo importante:** el filtro por tu negocio se aplica solo. Nunca incluyas `businessId` en tus pipelines — el servidor lo inyecta automáticamente.
+**Tu negocio está aislado automáticamente.** Solo ves tus propios datos, sin necesidad de pasar IDs ni filtros.
 
-## Colecciones disponibles
+## ¿Qué datos puedes consultar?
 
-| Colección | Contenido |
-|-----------|-----------|
-| `roulettesMaterializedView` | Giros de ruleta, premios ganados, tipos de regalo |
-| `nippysupplyMaterializedView` | Retiros de supply por trabajador |
-| `stockLevelsMaterializedView` | Niveles actuales de stock por producto |
-| `coursesMaterializedView` | Inscripciones y completaciones de cursos |
-| `nippyLearnMaterializedView` | Progreso de aprendizaje en el LMS |
-| `attendeesMaterializedView` | Asistentes a centros y eventos |
+Puedes preguntar sobre estas áreas de tu negocio:
 
-## Reglas de pipeline
+| Área | Qué puedes preguntar |
+|------|---------------------|
+| Ruletas | Giros, premios ganados, tipos de regalo y fechas |
+| Supply | Retiros de inventario por trabajador y por producto |
+| Stock | Niveles actuales de stock por producto |
+| Cursos | Inscripciones y gente que completó cada curso |
+| Aprendizaje | Progreso de alumnos en el LMS |
+| Asistentes | Gente que asistió a centros y eventos |
 
-- **Stages permitidos:** `$match`, `$group`, `$sort`, `$limit`, `$project`, `$unwind`, `$lookup`, `$addFields`, `$count`
-- **Prohibidos:** `$out`, `$merge`, `$function`, `$accumulator`, `$where`, `$facet`
-- **Límite máximo:** 100 resultados (aplicado server-side)
-- **Fechas:** strings ISO 8601 (`"2026-01-01"` o `"2026-01-01T00:00:00Z"`)
-- Cada stage debe ser un dict de una sola llave: `{"$match": {...}}`
+Tu agente sabe exactamente qué datos corresponden a cada área. Solo haz la pregunta y él elige la fuente correcta.
 
 ## Tools
 
 ### `analytics_execute_pipeline`
 
-Ejecuta un pipeline de agregación para una pregunta simple. Usa esta tool para consultas directas como "¿cuántos premios se canjearon este mes?".
+Haz una pregunta sobre tus datos y obtén los resultados. Úsala para consultas directas como "¿cuántos premios se canjearon este mes?".
 
 <ParamField body="collection" type="string" required>
-  Nombre de la colección. Debe ser una de: `roulettesMaterializedView`, `nippysupplyMaterializedView`, `stockLevelsMaterializedView`, `coursesMaterializedView`, `nippyLearnMaterializedView`, `attendeesMaterializedView`.
+  Área de datos a consultar. Tu agente elige automáticamente la correcta.
 </ParamField>
 
 <ParamField body="pipeline" type="array" required>
-  Lista de stages de agregación MongoDB. Cada stage debe ser un dict de una sola llave. **No incluir `businessId`.**
+  La consulta en sí. Tu agente la construye automáticamente a partir de tu pregunta. Es un arreglo de pasos que transforman y filtran los datos para responder exactamente lo que necesitas.
 </ParamField>
 
 **Respuesta:**
@@ -55,11 +51,8 @@ Ejecuta un pipeline de agregación para una pregunta simple. Usa esta tool para 
 {
   "collection": "roulettesMaterializedView",
   "collection_label": "Ruletas",
-  "pipeline": [{"$match": {...}}, {"$group": {...}}],
-  "executed_pipeline": [{"$match": {...}, "businessId": "..."}, {"$group": {...}}],
   "count": 3,
   "results": [...],
-  "empty": false,
   "summary": "3 resultado(s) · Ruletas"
 }
 ```
@@ -149,100 +142,36 @@ Ejecuta un pipeline de agregación para una pregunta simple. Usa esta tool para 
 
 ### `analytics_execute_pipelines`
 
-Ejecuta de 2 a 5 pipelines en secuencia para comparaciones entre períodos, segmentos o métricas.
+Compara dos o más períodos o segmentos de una sola vez. Úsala para preguntas como "compara los giros de abril vs mayo" o "inscripciones Q1 vs Q2".
 
 <ParamField body="queries" type="array" required>
-  Lista de 2 a 5 objetos de consulta. Cada objeto debe contener:
-  - `label` (string, requerido): etiqueta descriptiva del corte, e.g. `"Enero 2026"`
-  - `collection` (string, requerido): colección a consultar
-  - `pipeline` (array, requerido): pipeline de agregación (mismas reglas que `execute_pipeline`)
+  Lista de 2 a 5 consultas. Cada una con:
+  - `label` (string): nombre descriptivo del corte, e.g. `"Abril 2026"`
+  - `collection` (string): área de datos (tu agente la elige)
+  - `pipeline` (array): la consulta (tu agente la construye)
 </ParamField>
-
-**Respuesta:**
-
-```json
-{
-  "queries": [
-    {
-      "label": "Abril 2026",
-      "collection": "roulettesMaterializedView",
-      "collection_label": "Ruletas",
-      "count": 150,
-      "results": [...],
-      "empty": false,
-      "summary": "150 resultado(s) · Ruletas"
-    },
-    {
-      "label": "Mayo 2026",
-      "collection": "roulettesMaterializedView",
-      "collection_label": "Ruletas",
-      "count": 210,
-      "results": [...],
-      "empty": false,
-      "summary": "210 resultado(s) · Ruletas"
-    }
-  ]
-}
-```
-
-**Ejemplo — comparar giros abril vs mayo:**
-
-```json
-{
-  "name": "analytics_execute_pipelines",
-  "arguments": {
-    "queries": [
-      {
-        "label": "Abril 2026",
-        "collection": "roulettesMaterializedView",
-        "pipeline": [
-          {"$match": {"createdAt": {"$gte": "2026-04-01T00:00:00Z", "$lte": "2026-04-30T23:59:59Z"}}},
-          {"$group": {"_id": null, "total": {"$sum": 1}}}
-        ]
-      },
-      {
-        "label": "Mayo 2026",
-        "collection": "roulettesMaterializedView",
-        "pipeline": [
-          {"$match": {"createdAt": {"$gte": "2026-05-01T00:00:00Z", "$lte": "2026-05-08T23:59:59Z"}}},
-          {"$group": {"_id": null, "total": {"$sum": 1}}}
-        ]
-      }
-    ]
-  }
-}
-```
 
 ---
 
-## Prompts de analytics
+<Accordion title="Detalles técnicos (avanzado)">
+  Si quieres escribir las consultas manualmente o necesitas los nombres exactos, aquí están los detalles:
 
-El servidor expone prompts que guían al agente para formular mejores preguntas analíticas. No son tools ejecutables — son plantillas que el agente usa para estructurar su razonamiento.
+  **Áreas de datos y sus identificadores:**
 
-| Prompt | Parámetros | Uso |
-|--------|------------|-----|
-| `explore_analytics_question` | `business_goal` (str), `area` (str, default `"general"`) | Convierte un objetivo de negocio en una pregunta analítica clara y medible |
-| `compare_analytics_periods` | `subject` (str), `period_a` (str), `period_b` (str) | Formula una comparación robusta entre dos períodos |
-| `diagnose_business_area` | `area` (str), `timeframe` (str) | Diagnóstico abierto de un área de negocio con señales de alerta |
+  | Área | Identificador |
+  |------|--------------|
+  | Ruletas | `roulettesMaterializedView` |
+  | Supply | `nippysupplyMaterializedView` |
+  | Stock | `stockLevelsMaterializedView` |
+  | Cursos | `coursesMaterializedView` |
+  | Aprendizaje | `nippyLearnMaterializedView` |
+  | Asistentes | `attendeesMaterializedView` |
 
-## Recursos de analytics
+  **Operaciones permitidas:** `$match`, `$group`, `$sort`, `$limit`, `$project`, `$unwind`, `$lookup`, `$addFields`, `$count`
+  
+  **Operaciones no permitidas:** `$out`, `$merge`, `$function`, `$accumulator`, `$where`, `$facet`
 
-El servidor expone recursos de solo lectura que el agente puede consultar para entender esquemas y políticas:
+  **Límite:** máximo 100 resultados. **Fechas:** usar formato ISO 8601 (`"2026-01-01"` o `"2026-01-01T00:00:00Z"`).
 
-| URI | Nombre | Contenido |
-|-----|--------|-----------|
-| `nippy://analytics/schema/collections` | `analytics_collection_schemas` | Referencia campo-por-campo de todas las colecciones |
-| `nippy://analytics/policy/tenancy` | `analytics_tenancy_policy` | Política de aislamiento multi-tenant para queries |
-| `nippy://analytics/spec/v1` | `analytics_spec_v1` | Contrato del producto y protocolo MCP de analytics |
-
-## Preguntas de ejemplo
-
-Estos son ejemplos de lo que puedes preguntarle al agente directamente en lenguaje natural:
-
-- "¿Cuántos premios se canjearon este mes?"
-- "Top 5 productos con más retiros de supply en los últimos 30 días"
-- "¿Cuántos usuarios completaron cursos en Q1 vs Q2?"
-- "¿Qué productos de stock están bajo el mínimo?"
-- "Comparar inscripciones a cursos de enero vs febrero"
-- "Evolución diaria de giros de ruleta en la última semana"
-- "Asistentes por centro en el último trimestre"
+  **Importante:** no incluyas `businessId` en ninguna consulta. El servidor lo inyecta solo.
+</Accordion>

@@ -278,13 +278,15 @@ Aplica los cambios al flow. Mismos parámetros que `propose_update_flow`.
 
 ---
 
-## Recursos de flows
+<Accordion title="Detalles técnicos (avanzado)">
+  Referencias de esquemas para el agente:
 
-| URI | Nombre | Contenido |
-|-----|--------|-----------|
-| `nippy://flows/schema/schemas` | `flows_schemas` | Referencia de campos de la colección `links` (flows) |
-| `nippy://flows/schema/glossary` | `flows_glossary` | Términos de negocio y mapeos comunes de consultas |
-| `nippy://flows/skill` | `flows_skill` | Instrucciones para el LLM en la vertical de flows |
+  | URI | Nombre | Descripción |
+  |-----|--------|-------------|
+  | `nippy://flows/schema/schemas` | `flows_schemas` | Campos de flows |
+  | `nippy://flows/schema/glossary` | `flows_glossary` | Términos de negocio y mapeos |
+  | `nippy://flows/skill` | `flows_skill` | Instrucciones para el agente |
+</Accordion>
 
 ## Checklist post-creación
 

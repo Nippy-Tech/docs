@@ -64,8 +64,8 @@ Las API keys se generan desde la Consola de Nippy:
 Cada API key está ligada a exactamente un negocio. El servidor garantiza que:
 
 1. **Todas las tools** filtran datos por el `business_id` resuelto de la key — no puedes consultar datos de otro negocio aunque conozcas su ID.
-2. **Analytics** tiene doble capa de aislamiento: el prompt del LLM incluye el `businessId` como guía, y el servidor inyecta el filtro server-side **después** de que el LLM genera el pipeline, sobrescribiendo cualquier filtro que el modelo haya puesto.
-3. **Roulettes, Supply, Learning, Flows** usan filtros hardcodeados en cada método del servicio (`businessId`, `companyId`, `businesses`) — no pasan por el LLM.
+2. **Analytics** tiene doble capa de seguridad: el servidor garantiza que solo ves los datos de tu negocio, sin importar cómo esté formulada la consulta.
+3. **Roulettes, Supply, Learning, Flows** filtran automáticamente por tu negocio en cada operación.
 
 ## Errores de autenticación
 
