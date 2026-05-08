@@ -38,8 +38,7 @@
               "mcp/supply",
               "mcp/roulettes",
               "mcp/flows",
-              "mcp/learning",
-              "mcp/vision"
+               "mcp/learning"
             ]
           }
         ]
@@ -80,7 +79,7 @@
     "primary": {
       "type": "button",
       "label": "Consola",
-      "href": "https://plataforma.nippy.la"
+      "href": "https://console.nippy.la"
     }
   },
   "contextual": {

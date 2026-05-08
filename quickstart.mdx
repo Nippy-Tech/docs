@@ -11,7 +11,7 @@ Toda autenticación al MCP requiere una **Nippy API Key** (`npk_*`). Esta key es
 Para obtener tu key, contacta al equipo de Nippy o accede desde la Consola:
 
 ```
-https://plataforma.nippy.la/settings/api-keys
+https://console.nippy.la/settings/api-keys
 ```
 
 <Note>
@@ -33,7 +33,7 @@ https://plataforma.nippy.la/settings/api-keys
       "mcpServers": {
         "nippy": {
           "command": "npx",
-          "args": ["-y", "@anthropic/server-mcp-everything", "--transport", "streamableHttp", "https://api.nippy.la/mcp"],
+          "args": ["-y", "@anthropic/server-mcp-everything", "--transport", "streamableHttp", "https://ms.nippy.la/cognitive-layer/mcp"],
           "env": {
             "MCP_BEARER_TOKEN": "npk_tu_api_key_aqui"
           }
@@ -51,7 +51,7 @@ https://plataforma.nippy.la/settings/api-keys
     {
       "mcpServers": {
         "nippy": {
-          "url": "https://api.nippy.la/mcp",
+          "url": "https://ms.nippy.la/cognitive-layer/mcp",
           "headers": {
             "X-API-Key": "npk_tu_api_key_aqui"
           }
@@ -66,7 +66,7 @@ https://plataforma.nippy.la/settings/api-keys
     El servidor acepta peticiones JSON-RPC 2.0 sobre HTTP. Cada petición debe incluir el header `X-API-Key`:
 
     ```bash
-    curl -X POST https://api.nippy.la/mcp \
+    curl -X POST https://ms.nippy.la/cognitive-layer/mcp \
       -H "Content-Type: application/json" \
       -H "X-API-Key: npk_tu_api_key_aqui" \
       -d '{

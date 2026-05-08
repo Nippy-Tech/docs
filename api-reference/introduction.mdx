@@ -15,26 +15,6 @@ El servidor de Nippy expone los siguientes endpoints REST. Todos los endpoints (
 | `/mcp` | `POST` | Servidor MCP principal sobre HTTP streamable (JSON-RPC 2.0). Todas las tools de analytics, supply, roulettes, flows y learning se exponen aquí. |
 | `/oauth/token` | `POST` | Intercambio de token OAuth 2.0 para clientes que implementan el protocolo completo de autenticación. Retorna un `access_token` JWT. |
 
-### Vision AI
-
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/vision/process-document` | `POST` | OCR de documentos: extrae datos de cédulas, licencias y otros documentos usando Gemini Vision. Procesamiento asíncrono en background. |
-| `/vision/analyze-invoice` | `POST` | Extracción de facturas: analiza imágenes de facturas desde S3 y extrae proveedor, fecha, total e items. |
-| `/vision/analyze-administrative-invoice` | `POST` | Extracción de facturas administrativas con campos adicionales: número de factura, fecha de vencimiento, moneda. |
-| `/vision/health` | `GET` | Health check del servicio Vision. Verifica conectividad con MongoDB. |
-
-### Vision Testing
-
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/vision/testing/process_mock` | `POST` | Procesa un documento mock sin consumir créditos de API. |
-| `/vision/testing/stress_test` | `POST` | Ejecuta un stress test procesando N documentos mock (1–1000). |
-| `/vision/testing/mock_stats` | `GET` | Estadísticas del servicio mock. |
-| `/vision/testing/supported_types` | `GET` | Lista los tipos de documento soportados en el mock. |
-| `/vision/testing/reset_stats` | `POST` | Reinicia las estadísticas del mock. |
-| `/vision/testing/health` | `GET` | Health check del servicio de testing. |
-
 ### Sistema
 
 | Endpoint | Método | Descripción |
@@ -125,8 +105,5 @@ Las tools del servidor MCP están organizadas por verticales. Cada vertical tien
   </Card>
   <Card title="Learning" icon="graduation-cap" href="/mcp/learning">
     LMS, cursos y certificados
-  </Card>
-  <Card title="Vision" icon="eye" href="/mcp/vision">
-    OCR de documentos (REST)
   </Card>
 </CardGroup>
