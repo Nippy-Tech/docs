@@ -1,133 +1,79 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "Nippy MCP — AI backbone para tus operaciones"
+description: "Conecta Claude, Cursor o cualquier cliente MCP a tu negocio en Nippy. Consulta datos, crea campañas, gestiona inventario y más, todo en lenguaje natural."
+icon: "bolt"
 ---
 
-## Setting up
+## ¿Qué es el MCP de Nippy?
 
-Get your documentation site up and running in minutes.
+El servidor MCP de Nippy expone todas las operaciones de tu negocio como herramientas que cualquier agente de IA puede invocar. En lugar de abrir la consola y navegar menús, le preguntas a Claude o Cursor directamente:
+
+- "¿Cuántos premios se canjearon este mes?"
+- "Crea una campaña de adquisición con ruleta para el producto X"
+- "¿Qué productos están por debajo del stock mínimo?"
+
+El servidor se encarga de la autenticación, el aislamiento multi-tenant y la ejecución. Tú solo haces preguntas.
+
+## Verticals disponibles
+
+<CardGroup cols={2}>
+  <Card
+    title="Analytics"
+    icon="chart-bar"
+    href="/mcp/analytics"
+  >
+    Consultas en lenguaje natural contra las vistas materializadas de MongoDB. Soporta pipelines de agregación simples y comparaciones entre períodos.
+  </Card>
+  <Card
+    title="Supply"
+    icon="boxes-stacking"
+    href="/mcp/supply"
+  >
+    Catálogo global de stock, niveles por Nippy Center, alertas de bajo inventario, historial de retiros y creación de centros de distribución.
+  </Card>
+  <Card
+    title="Roulettes"
+    icon="ticket"
+    href="/mcp/roulettes"
+  >
+    Gamificación: crea y gestiona ruletas de premios físicos y digitales. Flujo completo propose → create con validación de inventario.
+  </Card>
+  <Card
+    title="Flows"
+    icon="route"
+    href="/mcp/flows"
+  >
+    Landing pages de registro para campañas. Configura campos, redirects (ruleta, curso, URL) y métricas de conversión.
+  </Card>
+  <Card
+    title="Learning"
+    icon="graduation-cap"
+    href="/mcp/learning"
+  >
+    LMS integrado: inscripciones, progreso por alumno, resultados de exámenes, certificados emitidos y creación de cursos.
+  </Card>
+  <Card
+    title="Vision"
+    icon="eye"
+    href="/mcp/vision"
+  >
+    OCR de documentos e extracción de facturas via Gemini Vision. Endpoints REST para flujos de devoluciones y motoconcho.
+  </Card>
+</CardGroup>
+
+## Clientes compatibles
+
+El servidor usa **MCP sobre HTTP streamable** (JSON-RPC 2.0). Funciona con cualquier cliente que soporte el protocolo:
+
+- **Claude Desktop** — integración nativa con herramientas
+- **Cursor** — agente con acceso a tools en el editor
+- **Agentes internos** — cualquier cliente Python/JS que implemente MCP
 
 <Card
-  title="Start here"
+  title="Conectarte en 3 pasos"
   icon="rocket"
   href="/quickstart"
   horizontal
 >
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Make your content agent ready
-
-Make your docs work for humans and AI agents alike.
-
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
-  </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
-  </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
-  </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
+  Obtén tu API key, agrega el servidor a tu cliente y haz tu primera consulta.
 </Card>

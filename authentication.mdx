@@ -1,0 +1,82 @@
+---
+title: "Autenticación"
+description: "Cómo autenticarte con el MCP de Nippy: X-API-Key y OAuth Bearer JWT"
+icon: "key"
+---
+
+## Métodos de autenticación
+
+El servidor MCP y los endpoints REST de Nippy soportan dos métodos de autenticación. Ambos resuelven el `business_id` del tenant automáticamente — nunca necesitas pasarlo explícitamente en las llamadas a tools.
+
+### X-API-Key (recomendado)
+
+Incluye tu Nippy API Key en el header `X-API-Key` de cada petición:
+
+```http
+POST /mcp
+X-API-Key: npk_tu_api_key_aqui
+Content-Type: application/json
+```
+
+Las keys con prefijo `npk_*` son keys de tenant. El servidor las resuelve contra la base de datos para determinar qué `business_id` autorizas, sin exponer ese ID en la petición.
+
+### OAuth Bearer JWT
+
+Para clientes que implementan el protocolo completo de OAuth, el servidor expone un endpoint de intercambio de tokens:
+
+```http
+POST /oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "tu_client_id",
+  "client_secret": "npk_tu_api_key_aqui"
+}
+```
+
+La respuesta incluye un `access_token` que puedes usar como Bearer:
+
+```http
+POST /mcp
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+<Note>
+  Para la mayoría de integraciones con Claude Desktop y Cursor, usa directamente `X-API-Key`. El flujo OAuth es para clientes MCP que implementan el protocolo de autenticación completo.
+</Note>
+
+## Cómo obtener tu API key
+
+Las API keys se generan desde la Consola de Nippy:
+
+1. Inicia sesión en [https://plataforma.nippy.la](https://plataforma.nippy.la)
+2. Ve a **Configuración** > **API Keys**
+3. Haz clic en **Generar nueva key**
+4. Copia la key (formato `npk_xxxxxxxx`)
+
+<Warning>
+  Nunca compartas tu `npk_*` key. Tiene acceso completo de lectura y escritura a los datos de tu negocio. Si una key se compromete, revócala inmediatamente desde la Consola.
+</Warning>
+
+## Aislamiento multi-tenant
+
+Cada API key está ligada a exactamente un negocio. El servidor garantiza que:
+
+1. **Todas las tools** filtran datos por el `business_id` resuelto de la key — no puedes consultar datos de otro negocio aunque conozcas su ID.
+2. **Analytics** tiene doble capa de aislamiento: el prompt del LLM incluye el `businessId` como guía, y el servidor inyecta el filtro server-side **después** de que el LLM genera el pipeline, sobrescribiendo cualquier filtro que el modelo haya puesto.
+3. **Roulettes, Supply, Learning, Flows** usan filtros hardcodeados en cada método del servicio (`businessId`, `companyId`, `businesses`) — no pasan por el LLM.
+
+## Errores de autenticación
+
+| Código | Mensaje | Causa |
+|--------|---------|-------|
+| `401` | `Unauthorized` | Header `X-API-Key` ausente, inválido o malformado |
+| `403` | `Forbidden` | Key válida pero sin permisos para el recurso solicitado |
+| `400` | `ValueError: MCP tools require tenant-bound auth (npk_* key or OAuth Bearer)` | La key no está ligada a un tenant (no es una key `npk_*`) |
+
+Si recibes un error de autenticación, verifica que:
+
+- El header se llama `X-API-Key` (no `Authorization`, no `x-api-key` sin guiones)
+- La key tiene el prefijo `npk_`
+- La key no ha expirado ni sido revocada en la Consola

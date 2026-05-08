@@ -1,0 +1,293 @@
+---
+title: "Flows"
+description: "Landing pages de registro para campañas: crea, consulta y mide la conversión de tus flows"
+icon: "route"
+---
+
+## ¿Qué hace esta vertical?
+
+Flows maneja las landing pages de registro de Nippy. Cada flow es una página pública que captura datos de usuarios y los redirige a una ruleta, curso, URL externa, encuesta o evento.
+
+Las tools de escritura siguen el patrón **propose → approve**: primero se genera un preview sin escribir a la base de datos, y solo se ejecuta la escritura después de confirmación explícita.
+
+<Note>
+  El flow creado por MCP es un **scaffold**. Después de la creación, se requiere configuración adicional desde la Consola (subir documentos, configurar Palenca, agregar redirects adicionales, etc.).
+</Note>
+
+---
+
+## Tools de lectura
+
+### `flows_list_flows`
+
+Lista los flows de este negocio.
+
+<ParamField body="limit" type="integer" default="100">
+  Número máximo de flows a retornar.
+</ParamField>
+
+**Respuesta incluye:** `slug`, `name`, `isActive`, `completedCount`, `uniqueVisitCount`, `totalVisitCount`, `conversionRate`, `publicUrl`
+
+```json
+{
+  "name": "flows_list_flows",
+  "arguments": {
+    "limit": 20
+  }
+}
+```
+
+---
+
+### `flows_get_flow_stats`
+
+Obtiene estadísticas agregadas de todos los flows del negocio.
+
+**Sin parámetros.**
+
+**Respuesta:** `totalFlows`, `activeFlows`, `inactiveFlows`, `totalCompletions`, `totalVisits`, `uniqueVisits`, `conversionRate`
+
+```json
+{
+  "name": "flows_get_flow_stats",
+  "arguments": {}
+}
+```
+
+---
+
+### `flows_get_flow_by_slug`
+
+Obtiene información detallada de un flow específico por su slug.
+
+<ParamField body="slug" type="string" default="''" required>
+  Slug del flow a consultar.
+</ParamField>
+
+**Respuesta:** documento completo incluyendo `registrationFields`, configuración de `redirect`, métricas y `publicUrl`.
+
+```json
+{
+  "name": "flows_get_flow_by_slug",
+  "arguments": {
+    "slug": "campana-mayo-2026"
+  }
+}
+```
+
+---
+
+## Tools de escritura — Creación
+
+### `flows_propose_create_flow`
+
+Genera un preview del scaffold del flow. **No escribe a la base de datos.** Valida que el slug sea único y que el target de redirect exista y pertenezca al negocio.
+
+<ParamField body="name" type="string" required>
+  Nombre del flow.
+</ParamField>
+
+<ParamField body="slug" type="string" required>
+  Slug único en kebab-case (e.g. `"campana-mayo-2026"`). Debe ser globalmente único.
+</ParamField>
+
+<ParamField body="redirect_type" type="string" required>
+  Tipo de redirect al completar el registro. Debe ser uno de: `"roulette"`, `"course"`, `"survey"`, `"event"`, `"url"`.
+</ParamField>
+
+<ParamField body="redirect_target_id" type="string" default="''">
+  ID del target del redirect. Requerido si `redirect_type` es `"roulette"`, `"course"`, `"survey"` o `"event"`.
+</ParamField>
+
+<ParamField body="redirect_url" type="string" default="''">
+  URL del redirect. Requerido si `redirect_type` es `"url"`.
+</ParamField>
+
+<ParamField body="registration_fields" type="array">
+  Lista de campos de registro. Cada campo es un objeto con:
+  - `text` (string): etiqueta visible del campo
+  - `value` (string): identificador interno
+  - `type` (string): tipo de campo (`"text"`, `"email"`, `"select"`, `"phone"`, etc.)
+  - `placeholder` (string): texto placeholder
+  - `isRequired` (boolean): si es obligatorio
+
+  Si se omite, se usan campos por defecto: Nombre, Apellido, País.
+</ParamField>
+
+<ParamField body="source" type="string" default="''">
+  UTM source para tracking de campaña.
+</ParamField>
+
+<ParamField body="medium" type="string" default="''">
+  UTM medium para tracking de campaña.
+</ParamField>
+
+<ParamField body="campaign" type="string" default="''">
+  UTM campaign para tracking de campaña.
+</ParamField>
+
+<ParamField body="content" type="string" default="''">
+  UTM content para tracking de campaña.
+</ParamField>
+
+<ParamField body="is_palenca_required" type="boolean" default="false">
+  Si el flow requiere validación bancaria con Palenca.
+</ParamField>
+
+```json
+{
+  "name": "flows_propose_create_flow",
+  "arguments": {
+    "name": "Campaña Mayo 2026",
+    "slug": "campana-mayo-2026",
+    "redirect_type": "roulette",
+    "redirect_target_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "registration_fields": [
+      {
+        "text": "Nombre completo",
+        "value": "fullName",
+        "type": "text",
+        "placeholder": "Tu nombre completo",
+        "isRequired": true
+      },
+      {
+        "text": "Correo electrónico",
+        "value": "email",
+        "type": "email",
+        "placeholder": "tucorreo@ejemplo.com",
+        "isRequired": true
+      },
+      {
+        "text": "WhatsApp",
+        "value": "phone",
+        "type": "phone",
+        "placeholder": "+52 55 1234 5678",
+        "isRequired": true
+      },
+      {
+        "text": "País",
+        "value": "country",
+        "type": "select",
+        "placeholder": "Selecciona país",
+        "isRequired": true
+      }
+    ],
+    "source": "whatsapp",
+    "medium": "cpc",
+    "campaign": "lanzamiento-mayo-2026",
+    "content": "banner_01",
+    "is_palenca_required": false
+  }
+}
+```
+
+---
+
+### `flows_approve_create_flow`
+
+Crea el scaffold del flow en la base de datos. Mismos parámetros que `propose_create_flow`.
+
+<Warning>
+  Solo llama esta tool después de mostrar al usuario el preview de `propose_create_flow` y recibir confirmación explícita.
+</Warning>
+
+**Respuesta:** `{"_id": "...", "slug": "campana-mayo-2026", "publicUrl": "https://plataforma.nippy.la/flow/campana-mayo-2026", "status": "created", "message": "Flow scaffold created. Additional Console configuration may be needed."}`
+
+---
+
+## Tools de escritura — Actualización
+
+### `flows_propose_update_flow`
+
+Genera un preview de los cambios a aplicar sobre un flow existente. **No escribe a la base de datos.** Solo los campos no-None se aplican.
+
+<ParamField body="slug" type="string" required>
+  Slug del flow a actualizar.
+</ParamField>
+
+<ParamField body="name" type="string">
+  Nuevo nombre del flow.
+</ParamField>
+
+<ParamField body="is_active" type="boolean">
+  Activar o desactivar el flow.
+</ParamField>
+
+<ParamField body="redirect_type" type="string">
+  Nuevo tipo de redirect.
+</ParamField>
+
+<ParamField body="redirect_target_id" type="string">
+  Nuevo ID del target de redirect.
+</ParamField>
+
+<ParamField body="redirect_url" type="string">
+  Nueva URL de redirect.
+</ParamField>
+
+<ParamField body="registration_fields" type="array">
+  Nueva lista de campos de registro (reemplaza los existentes).
+</ParamField>
+
+<ParamField body="source" type="string">
+  Nuevo UTM source.
+</ParamField>
+
+<ParamField body="medium" type="string">
+  Nuevo UTM medium.
+</ParamField>
+
+<ParamField body="campaign" type="string">
+  Nuevo UTM campaign.
+</ParamField>
+
+<ParamField body="content" type="string">
+  Nuevo UTM content.
+</ParamField>
+
+<ParamField body="is_palenca_required" type="boolean">
+  Si se requiere validación Palenca.
+</ParamField>
+
+```json
+{
+  "name": "flows_propose_update_flow",
+  "arguments": {
+    "slug": "campana-mayo-2026",
+    "is_active": true,
+    "campaign": "lanzamiento-mayo-2026-v2"
+  }
+}
+```
+
+---
+
+### `flows_approve_update_flow`
+
+Aplica los cambios al flow. Mismos parámetros que `propose_update_flow`.
+
+<Warning>
+  Solo llama esta tool después de mostrar al usuario el preview de `propose_update_flow` y recibir confirmación explícita.
+</Warning>
+
+**Respuesta:** `{"slug": "campana-mayo-2026", "updated": true}`
+
+---
+
+## Recursos de flows
+
+| URI | Nombre | Contenido |
+|-----|--------|-----------|
+| `nippy://flows/schema/schemas` | `flows_schemas` | Referencia de campos de la colección `links` (flows) |
+| `nippy://flows/schema/glossary` | `flows_glossary` | Términos de negocio y mapeos comunes de consultas |
+| `nippy://flows/skill` | `flows_skill` | Instrucciones para el LLM en la vertical de flows |
+
+## Checklist post-creación
+
+Después de crear un flow con MCP, completa estos pasos desde la Consola:
+
+1. Subir documentos requeridos (cédula, licencia, etc.)
+2. Configurar Palenca si se requiere validación bancaria
+3. Agregar redirects adicionales (survey, event, url) si aplica
+4. Ajustar `authType` si no es WhatsApp (Google, ambos)
+5. Probar el flow end-to-end antes de compartir el link público

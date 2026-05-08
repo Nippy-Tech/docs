@@ -1,0 +1,308 @@
+---
+title: "Learning"
+description: "LMS integrado: cursos, inscripciones, progreso de alumnos, exámenes y certificados"
+icon: "graduation-cap"
+---
+
+## ¿Qué hace esta vertical?
+
+Learning maneja el LMS de Nippy (Nippy Learn): consulta de cursos, inscripciones, progreso por alumno, resultados de exámenes, certificados emitidos y creación de cursos.
+
+Las tools de escritura siguen el patrón **propose → approve**: primero se genera un preview sin escribir a la base de datos, y solo se ejecuta la escritura después de confirmación explícita.
+
+---
+
+## Tools de lectura
+
+### `learning_list_courses`
+
+Lista los cursos de este negocio.
+
+<ParamField body="limit" type="integer" default="100">
+  Número máximo de cursos a retornar.
+</ParamField>
+
+**Respuesta incluye:** `_id`, `title`, `slug`, `description`, `published`, `isCertified`, `examApproveScore`, `created_at`
+
+```json
+{
+  "name": "learning_list_courses",
+  "arguments": {
+    "limit": 20
+  }
+}
+```
+
+---
+
+### `learning_get_enrollment_stats`
+
+Obtiene estadísticas de inscripciones: conteos por estado (`in_progress`, `exam`, `completed`, `certified`, `failed`).
+
+<ParamField body="course_id" type="string">
+  ID del curso. Si se omite, retorna estadísticas de todos los cursos.
+</ParamField>
+
+<ParamField body="date_from" type="string">
+  Fecha de inicio en ISO 8601 para filtrar por `startedAt`. Opcional.
+</ParamField>
+
+<ParamField body="date_to" type="string">
+  Fecha de fin en ISO 8601 para filtrar por `startedAt`. Opcional.
+</ParamField>
+
+**Respuesta:** `total_enrollments`, `by_status` (objeto con conteos por estado), `completion_rate`, `certification_rate`
+
+```json
+{
+  "name": "learning_get_enrollment_stats",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "date_from": "2026-01-01",
+    "date_to": "2026-05-08"
+  }
+}
+```
+
+---
+
+### `learning_get_course_progress`
+
+Obtiene el progreso por alumno para un curso específico.
+
+<ParamField body="course_id" type="string" default="''">
+  ID del curso a consultar.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="100">
+  Número máximo de registros de progreso a retornar.
+</ParamField>
+
+**Respuesta:** por cada alumno: `status`, módulo actual, módulos completados, `score`, estado de examen, e identidad (`fullName`, `email`).
+
+```json
+{
+  "name": "learning_get_course_progress",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "limit": 50
+  }
+}
+```
+
+---
+
+### `learning_get_exam_results`
+
+Obtiene tasas de aprobación/reprobación y puntajes promedio de exámenes.
+
+<ParamField body="course_id" type="string">
+  ID del curso. Si se omite, retorna resultados de todos los cursos.
+</ParamField>
+
+**Respuesta:** `total_exams_started`, `total_exams_completed`, `pass_rate`, `average_score`
+
+```json
+{
+  "name": "learning_get_exam_results",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d"
+  }
+}
+```
+
+---
+
+### `learning_get_certificates_issued`
+
+Lista los certificados emitidos por este negocio en un rango de fechas.
+
+<ParamField body="date_from" type="string">
+  Fecha de inicio en ISO 8601. Opcional.
+</ParamField>
+
+<ParamField body="date_to" type="string">
+  Fecha de fin en ISO 8601. Opcional.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="100">
+  Número máximo de certificados a retornar.
+</ParamField>
+
+**Respuesta incluye:** `session_id`, info del usuario (`fullName`, `email`), info del curso (`title`, `slug`), detalles del certificado, y `completedAt`.
+
+```json
+{
+  "name": "learning_get_certificates_issued",
+  "arguments": {
+    "date_from": "2026-01-01",
+    "date_to": "2026-05-08",
+    "limit": 50
+  }
+}
+```
+
+---
+
+## Tools de escritura — Cursos
+
+### `learning_propose_create_course`
+
+Genera un preview del borrador de curso. **No escribe a la base de datos.**
+
+<ParamField body="title" type="string" required>
+  Título del curso.
+</ParamField>
+
+<ParamField body="slug" type="string" required>
+  Slug único del curso en kebab-case (e.g. `"induccion-nippy-2026"`).
+</ParamField>
+
+<ParamField body="description" type="string" default="''">
+  Descripción del curso.
+</ParamField>
+
+<ParamField body="exam_approve_score" type="float">
+  Puntaje mínimo para aprobar el examen (e.g. `70.0`). Opcional.
+</ParamField>
+
+<ParamField body="is_certified" type="boolean" default="false">
+  Si el curso otorga certificado al completarse.
+</ParamField>
+
+```json
+{
+  "name": "learning_propose_create_course",
+  "arguments": {
+    "title": "Inducción Nippy 2026",
+    "slug": "induccion-nippy-2026",
+    "description": "Curso de inducción para nuevos miembros de la plataforma Nippy. Cubre los fundamentos de operación, seguridad y uso de la consola.",
+    "exam_approve_score": 70.0,
+    "is_certified": true
+  }
+}
+```
+
+---
+
+### `learning_approve_create_course`
+
+Crea el borrador del curso en la base de datos. Mismos parámetros que `propose_create_course`.
+
+<Warning>
+  Solo llama esta tool después de mostrar al usuario el preview de `propose_create_course` y recibir confirmación explícita.
+</Warning>
+
+**Respuesta:** `{"_id": "...", "title": "Inducción Nippy 2026", "status": "created"}`
+
+---
+
+### `learning_propose_update_course`
+
+Genera un preview de los cambios a aplicar sobre un curso existente. **No escribe a la base de datos.** Solo los campos no-None se aplican.
+
+<ParamField body="course_id" type="string" required>
+  ID del curso a actualizar.
+</ParamField>
+
+<ParamField body="title" type="string">
+  Nuevo título del curso.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Nueva descripción del curso.
+</ParamField>
+
+<ParamField body="exam_approve_score" type="float">
+  Nuevo puntaje mínimo de aprobación.
+</ParamField>
+
+<ParamField body="is_certified" type="boolean">
+  Si el curso otorga certificado.
+</ParamField>
+
+<ParamField body="published" type="boolean">
+  Si el curso está publicado y visible para alumnos.
+</ParamField>
+
+```json
+{
+  "name": "learning_propose_update_course",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "published": true,
+    "exam_approve_score": 80.0
+  }
+}
+```
+
+---
+
+### `learning_approve_update_course`
+
+Aplica los cambios al curso. Mismos parámetros que `propose_update_course`.
+
+<Warning>
+  Solo llama esta tool después de mostrar al usuario el preview de `propose_update_course` y recibir confirmación explícita.
+</Warning>
+
+**Respuesta:** `{"course_id": "664f1a2b3c4d5e6f7a8b9c0d", "updated": true}`
+
+---
+
+## Tools de escritura — Certificados
+
+### `learning_propose_issue_certificate`
+
+Genera un preview de la emisión de un certificado. **No escribe a la base de datos.** Verifica que la sesión exista, esté completada y pertenezca al negocio.
+
+<ParamField body="session_id" type="string" required>
+  ID de la sesión de curso completada.
+</ParamField>
+
+```json
+{
+  "name": "learning_propose_issue_certificate",
+  "arguments": {
+    "session_id": "665a1b2c3d4e5f6a7b8c9d0e"
+  }
+}
+```
+
+---
+
+### `learning_approve_issue_certificate`
+
+Fuerza la certificación de una sesión completada. Marca el estado de la sesión como `"certified"`.
+
+<ParamField body="session_id" type="string" required>
+  ID de la sesión de curso a certificar.
+</ParamField>
+
+<Warning>
+  Solo llama esta tool después de mostrar al usuario el preview de `propose_issue_certificate` y recibir confirmación explícita. Esta tool **no** genera el PDF ni envía el email — eso lo maneja `whatsapp-platform` por separado.
+</Warning>
+
+```json
+{
+  "name": "learning_approve_issue_certificate",
+  "arguments": {
+    "session_id": "665a1b2c3d4e5f6a7b8c9d0e"
+  }
+}
+```
+
+---
+
+## Recursos de learning
+
+| URI | Nombre | Contenido |
+|-----|--------|-----------|
+| `nippy://learning/schema/schemas` | `learning_schemas` | Referencia de campos de `nippy_courses`, `nippy_course_sessions` y `profiles` |
+| `nippy://learning/schema/glossary` | `learning_glossary` | Términos de negocio y mapeos comunes de consultas |
+| `nippy://learning/skill` | `learning_skill` | Instrucciones para el LLM en la vertical de learning |
+
+## Notas importantes
+
+- Los cursos deben tener `published: true` antes de que los alumnos puedan acceder a ellos. Usa `propose_update_course` y `approve_update_course` para publicarlos.
+- La emisión de certificados desde MCP solo actualiza el estado de la sesión a `"certified"`. La generación del PDF y el envío por email los maneja `whatsapp-platform`.

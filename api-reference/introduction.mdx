@@ -1,33 +1,132 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "Introducción"
+description: "Referencia de endpoints HTTP del servidor de Nippy"
+icon: "terminal"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Endpoints HTTP
 
-## Welcome
+El servidor de Nippy expone los siguientes endpoints REST. Todos los endpoints (excepto `/health`) requieren autenticación vía header `X-API-Key` o `Authorization: Bearer <jwt>`.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+### Servidor MCP
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `/mcp` | `POST` | Servidor MCP principal sobre HTTP streamable (JSON-RPC 2.0). Todas las tools de analytics, supply, roulettes, flows y learning se exponen aquí. |
+| `/oauth/token` | `POST` | Intercambio de token OAuth 2.0 para clientes que implementan el protocolo completo de autenticación. Retorna un `access_token` JWT. |
+
+### Vision AI
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `/vision/process-document` | `POST` | OCR de documentos: extrae datos de cédulas, licencias y otros documentos usando Gemini Vision. Procesamiento asíncrono en background. |
+| `/vision/analyze-invoice` | `POST` | Extracción de facturas: analiza imágenes de facturas desde S3 y extrae proveedor, fecha, total e items. |
+| `/vision/analyze-administrative-invoice` | `POST` | Extracción de facturas administrativas con campos adicionales: número de factura, fecha de vencimiento, moneda. |
+| `/vision/health` | `GET` | Health check del servicio Vision. Verifica conectividad con MongoDB. |
+
+### Vision Testing
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `/vision/testing/process_mock` | `POST` | Procesa un documento mock sin consumir créditos de API. |
+| `/vision/testing/stress_test` | `POST` | Ejecuta un stress test procesando N documentos mock (1–1000). |
+| `/vision/testing/mock_stats` | `GET` | Estadísticas del servicio mock. |
+| `/vision/testing/supported_types` | `GET` | Lista los tipos de documento soportados en el mock. |
+| `/vision/testing/reset_stats` | `POST` | Reinicia las estadísticas del mock. |
+| `/vision/testing/health` | `GET` | Health check del servicio de testing. |
+
+### Sistema
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `/health` | `GET` | Health check general del servidor. No requiere autenticación. |
+
+---
+
+## Autenticación
+
+Todos los endpoints (excepto `/health`) requieren uno de estos headers:
+
+```http
+X-API-Key: npk_tu_api_key_aqui
+```
+
+o para OAuth:
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+Las API keys tienen el prefijo `npk_` y están ligadas a un negocio específico. El servidor resuelve el `business_id` automáticamente a partir de la key.
 
 <Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
+  title="Guía de autenticación"
+  icon="key"
+  href="/authentication"
+  horizontal
 >
-  View the OpenAPI specification file
+  Aprende a obtener tu API key y autenticarte con X-API-Key u OAuth Bearer JWT.
 </Card>
 
-## Authentication
+---
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+## Formato de peticiones MCP
+
+El endpoint `/mcp` acepta peticiones JSON-RPC 2.0. Las tools se invocan con el método `tools/call`:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "supply_list_stocks",
+    "arguments": {
+      "limit": 10
+    }
   }
-]
+}
 ```
+
+Para listar todas las tools disponibles:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list"
+}
+```
+
+## Verticales MCP
+
+Las tools del servidor MCP están organizadas por verticales. Cada vertical tiene su propio namespace:
+
+| Vertical | Prefijo | Tools |
+|----------|---------|-------|
+| Analytics | `analytics_` | `execute_pipeline`, `execute_pipelines` |
+| Supply | `supply_` | `list_stocks`, `list_nippy_center_stocks`, `get_low_stock_alerts`, `get_withdrawal_history`, `list_nippy_centers`, `propose_nippy_center`, `create_nippy_center`, `propose_stock`, `create_stock`, `propose_nippy_center_stock`, `create_nippy_center_stock`, `propose_withdrawal`, `approve_withdrawal` |
+| Roulettes | `roulettes_` | `list_roulette_items`, `get_roulette`, `list_roulettes`, `propose_item`, `create_item`, `propose_roulette`, `create_roulette` |
+| Flows | `flows_` | `list_flows`, `get_flow_stats`, `get_flow_by_slug`, `propose_create_flow`, `approve_create_flow`, `propose_update_flow`, `approve_update_flow` |
+| Learning | `learning_` | `list_courses`, `get_enrollment_stats`, `get_course_progress`, `get_exam_results`, `get_certificates_issued`, `propose_create_course`, `approve_create_course`, `propose_update_course`, `approve_update_course`, `propose_issue_certificate`, `approve_issue_certificate` |
+
+<CardGroup cols={3}>
+  <Card title="Analytics" icon="chart-bar" href="/mcp/analytics">
+    Pipelines de agregación MongoDB
+  </Card>
+  <Card title="Supply" icon="boxes-stacking" href="/mcp/supply">
+    Inventario y Nippy Centers
+  </Card>
+  <Card title="Roulettes" icon="ticket" href="/mcp/roulettes">
+    Gamificación y premios
+  </Card>
+  <Card title="Flows" icon="route" href="/mcp/flows">
+    Landing pages de registro
+  </Card>
+  <Card title="Learning" icon="graduation-cap" href="/mcp/learning">
+    LMS, cursos y certificados
+  </Card>
+  <Card title="Vision" icon="eye" href="/mcp/vision">
+    OCR de documentos (REST)
+  </Card>
+</CardGroup>

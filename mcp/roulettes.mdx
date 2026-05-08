@@ -1,0 +1,290 @@
+---
+title: "Roulettes"
+description: "Gamificación: crea y gestiona ruletas de premios físicos y digitales"
+icon: "ticket"
+---
+
+## ¿Qué hace esta vertical?
+
+Roulettes maneja la gamificación de Nippy: creación y consulta de ruletas (ruedas de premios) y sus items de premio. Las ruletas pueden otorgar premios físicos (con control de stock), puntos, porcentajes de descuento, o la opción de perder.
+
+Las tools de escritura siguen el patrón **propose → create**: primero se genera un preview sin escribir a la base de datos, y solo se ejecuta la escritura después de confirmación explícita.
+
+<Note>
+  Siempre llama `list_roulette_items` antes de proponer una ruleta, para saber qué items físicos están disponibles con stock.
+</Note>
+
+---
+
+## Tools de lectura
+
+### `roulettes_list_roulette_items`
+
+Lista los items de premio físico disponibles para este negocio. Llámala **primero** antes de proponer cualquier ruleta.
+
+**Sin parámetros.**
+
+**Respuesta:** cada item incluye `_id`, `name`, `available_stock`, y si está `enabled_in_rewards`.
+
+Solo los items con `available_stock > 0` y `enabled_in_rewards = true` deben usarse como premios físicos en una ruleta.
+
+```json
+{
+  "name": "roulettes_list_roulette_items",
+  "arguments": {}
+}
+```
+
+---
+
+### `roulettes_get_roulette`
+
+Obtiene la configuración completa de una ruleta por su `_id`.
+
+<ParamField body="roulette_id" type="string" required>
+  ID de la ruleta a consultar.
+</ParamField>
+
+**Respuesta:** documento completo incluyendo `gifts` (con probabilidades, `typeOfGift`, `item_id`), `typeOfRoulette`, timers, términos, `isActive` y contadores (`totalSpins`).
+
+```json
+{
+  "name": "roulettes_get_roulette",
+  "arguments": {
+    "roulette_id": "664f1a2b3c4d5e6f7a8b9c0d"
+  }
+}
+```
+
+---
+
+### `roulettes_list_roulettes`
+
+Lista las ruletas existentes de este negocio.
+
+**Sin parámetros.**
+
+**Respuesta incluye:** `_id`, `name`, `isActive`, `typeOfRoulette`, contadores (`totalSpins`), `createdAt`.
+
+```json
+{
+  "name": "roulettes_list_roulettes",
+  "arguments": {}
+}
+```
+
+---
+
+## Tools de escritura — Items
+
+### `roulettes_propose_item`
+
+Genera un preview de un item de premio físico. **No escribe a la base de datos.**
+
+El `country` se hereda automáticamente del negocio.
+
+<ParamField body="name" type="string" required>
+  Nombre del item.
+</ParamField>
+
+<ParamField body="available_stock" type="integer" required>
+  Cantidad de stock disponible para premios.
+</ParamField>
+
+<ParamField body="description" type="string" default="''">
+  Descripción del item.
+</ParamField>
+
+<ParamField body="currency" type="string" default="'MXN'">
+  Moneda (código ISO 4217).
+</ParamField>
+
+<ParamField body="track_stock" type="boolean" default="true">
+  Si se debe llevar control de inventario de este item.
+</ParamField>
+
+<ParamField body="enabled_in_rewards" type="boolean" default="true">
+  Si el item está habilitado para ser usado como premio en ruletas.
+</ParamField>
+
+```json
+{
+  "name": "roulettes_propose_item",
+  "arguments": {
+    "name": "Audífonos Bluetooth",
+    "available_stock": 50,
+    "description": "Audífonos inalámbricos marca Nippy",
+    "currency": "MXN",
+    "track_stock": true,
+    "enabled_in_rewards": true
+  }
+}
+```
+
+---
+
+### `roulettes_create_item`
+
+Crea un nuevo item de premio físico. Mismos parámetros que `propose_item`.
+
+<Warning>
+  Solo llama esta tool después de mostrar al usuario el preview de `propose_item` y recibir confirmación explícita.
+</Warning>
+
+**Respuesta:** `{"_id": "...", "name": "Audífonos Bluetooth", "status": "created"}`
+
+---
+
+## Tools de escritura — Ruletas
+
+### `roulettes_propose_roulette`
+
+Genera un preview de la configuración de una ruleta. **No escribe a la base de datos.**
+
+<ParamField body="name" type="string" required>
+  Nombre de la ruleta.
+</ParamField>
+
+<ParamField body="gifts" type="array" required>
+  Lista de objetos de premio. Cada gift debe contener:
+
+  - `value` (string, requerido): nombre mostrado en la rueda
+  - `message` (string, requerido): mensaje mostrado al ganar
+  - `probability` (float, requerido): peso relativo (e.g. `80` = 80% de peso relativo entre todos los gifts)
+  - `typeOfGift` (object, requerido): `{"name": "...", "_id": "..."}` — **debe usar los IDs del catálogo de `nippy://roulettes/schema/gifts`.** Valores válidos:
+    - Porcentaje — `_id: "6342f530705c91dcbe8aba8b"`
+    - Perder — `_id: "634f356e33e5c76785516a2c"`
+    - Points — `_id: "68b86722b5a6eee84f241985"`
+  - `emoji` (string, opcional): emoji decorativo
+  - `quantity` (int, opcional): unidades disponibles. Requerido para premios físicos
+  - `item_id` (string, opcional): `_id` de `list_roulette_items` — solo para premios físicos. No confundir con `typeOfGift._id`
+  - `guaranteedForFirstTimers` (bool, opcional)
+  - `winInterval` (int, opcional)
+  - `fallback` (string, opcional)
+</ParamField>
+
+<ParamField body="time_to_win" type="integer" required>
+  Tiempo de animación al ganar (segundos).
+</ParamField>
+
+<ParamField body="time_to_lose" type="integer" required>
+  Tiempo de animación al perder (segundos).
+</ParamField>
+
+<ParamField body="text_to_win" type="string" required>
+  Texto mostrado cuando el usuario gana.
+</ParamField>
+
+<ParamField body="text_to_lose" type="string" required>
+  Texto mostrado cuando el usuario pierde.
+</ParamField>
+
+<ParamField body="terms_and_conditions" type="string" required>
+  Términos y condiciones de la ruleta.
+</ParamField>
+
+<ParamField body="roulette_type_id" type="integer" required>
+  ID numérico del tipo de ruleta. Consulta `nippy://roulettes/schema/gifts` para opciones válidas.
+</ParamField>
+
+<ParamField body="roulette_type_name" type="string" required>
+  Nombre del tipo de ruleta (e.g. `"standard"`, `"premium"`).
+</ParamField>
+
+<ParamField body="is_active" type="boolean" default="false">
+  Si la ruleta se activa inmediatamente. Recomendado: `false` hasta que el usuario confirme.
+</ParamField>
+
+<ParamField body="time_unit" type="string" default="'hours'">
+  Unidad de tiempo para la expiración: `"hours"`, `"days"`. Solo aplica si `roulette_type_id` lo soporta.
+</ParamField>
+
+<ParamField body="time_to_expire" type="integer" default="24">
+  Tiempo hasta que expira la ruleta, en la unidad de `time_unit`.
+</ParamField>
+
+<ParamField body="max_wins" type="integer" default="1">
+  Número máximo de premios que un usuario puede ganar en esta ruleta.
+</ParamField>
+
+```json
+{
+  "name": "roulettes_propose_roulette",
+  "arguments": {
+    "name": "Ruleta de Bienvenida Mayo 2026",
+    "gifts": [
+      {
+        "value": "Audífonos Bluetooth",
+        "message": "¡Ganaste unos Audífonos Bluetooth Nippy!",
+        "probability": 10,
+        "typeOfGift": {
+          "name": "Fisico",
+          "_id": "634f356e33e5c76785516a2d"
+        },
+        "emoji": "🎧",
+        "quantity": 50,
+        "item_id": "664f1a2b3c4d5e6f7a8b9c0d"
+      },
+      {
+        "value": "10% descuento",
+        "message": "¡Obtuviste 10% de descuento en tu próxima compra!",
+        "probability": 30,
+        "typeOfGift": {
+          "name": "Porcentaje",
+          "_id": "6342f530705c91dcbe8aba8b"
+        },
+        "emoji": "💰"
+      },
+      {
+        "value": "Sigue participando",
+        "message": "No ganaste esta vez. ¡Intenta de nuevo!",
+        "probability": 60,
+        "typeOfGift": {
+          "name": "Perder",
+          "_id": "634f356e33e5c76785516a2c"
+        },
+        "emoji": "😔"
+      }
+    ],
+    "time_to_win": 5,
+    "time_to_lose": 3,
+    "text_to_win": "¡Felicidades!",
+    "text_to_lose": "Sigue intentando",
+    "terms_and_conditions": "Promoción válida del 1 al 31 de mayo de 2026. Aplican restricciones.",
+    "roulette_type_id": 1,
+    "roulette_type_name": "standard",
+    "is_active": false,
+    "time_to_expire": 24,
+    "max_wins": 1
+  }
+}
+```
+
+---
+
+### `roulettes_create_roulette`
+
+Crea una nueva ruleta para este negocio. Mismos parámetros que `propose_roulette`.
+
+<Warning>
+  Solo llama esta tool después de mostrar al usuario el preview de `propose_roulette` y recibir confirmación explícita.
+</Warning>
+
+**Respuesta:** `{"_id": "...", "name": "Ruleta de Bienvenida Mayo 2026", "status": "created"}`
+
+---
+
+## Recursos de roulettes
+
+| URI | Nombre | Contenido |
+|-----|--------|-----------|
+| `nippy://roulettes/schema/gifts` | `roulettes_gift_types` | Catálogo de valores `typeOfGift`, opciones de `typeOfRoulette` y referencia de campos |
+| `nippy://roulettes/schema/fields` | `roulettes_field_reference` | Referencia campo-por-campo de documentos de ruleta e items |
+
+## Notas importantes
+
+- Los `typeOfGift._id` deben venir del catálogo oficial — no inventes IDs.
+- El `item_id` de un premio físico va en el campo `item_id` del gift, **no** en `typeOfGift._id`.
+- Siempre incluye al menos un slot de tipo "Perder".
+- El `country` de items y ruletas se hereda automáticamente del negocio.
+- Mantén `is_active: false` hasta que el usuario explícitamente pida activar la ruleta.
