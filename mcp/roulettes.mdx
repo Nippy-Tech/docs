@@ -4,11 +4,15 @@ description: "Gamificación: crea y gestiona ruletas de premios físicos y digit
 icon: "ticket"
 ---
 
-## ¿Qué hace esta vertical?
+## Ejemplos de lo que puedes preguntarle a tu agente
 
-Roulettes maneja la gamificación de Nippy: creación y consulta de ruletas (ruedas de premios) y sus items de premio. Las ruletas pueden otorgar premios físicos (con control de stock), puntos, porcentajes de descuento, o la opción de perder.
+- "Crea una ruleta de bienvenida: 70% seguir participando, 20% descuento del 10%, 10% unos audífonos"
+- "¿Qué ruletas tengo activas ahorita?"
+- "Agrega un premio físico: 50 mochilas Nippy para usar en ruletas"
+- "Muéstrame la configuración completa de la ruleta de mayo"
+- "¿Qué items de premio tengo disponibles con stock?"
 
-Las tools de escritura siguen el patrón **propose → create**: primero se genera un preview sin escribir a la base de datos, y solo se ejecuta la escritura después de confirmación explícita.
+Con Roulettes armas campañas de gamificación sin tocar la consola. Le dices a tu agente qué premios quieres, con qué probabilidad, y él configura todo. Antes de crear cualquier cosa te muestra un preview para que revises — nada se guarda hasta que tú digas que sí.
 
 <Note>
   Siempre llama `list_roulette_items` antes de proponer una ruleta, para saber qué items físicos están disponibles con stock.

@@ -1,20 +1,16 @@
 ---
-title: "Nippy MCP — AI backbone para tus operaciones"
+title: "Nippy MCP — pregúntale a tu IA y te responde con datos reales"
 description: "Conecta Claude, Cursor o cualquier cliente MCP a tu negocio en Nippy. Consulta datos, crea campañas, gestiona inventario y más, todo en lenguaje natural."
 icon: "bolt"
 ---
 
-## ¿Qué es el MCP de Nippy?
+## Háblale a tu agente como si fuera parte de tu equipo
 
-El servidor MCP de Nippy expone todas las operaciones de tu negocio como herramientas que cualquier agente de IA puede invocar. En lugar de abrir la consola y navegar menús, le preguntas a Claude o Cursor directamente:
+Con el MCP de Nippy, le puedes preguntar a Claude o Cursor cosas como *"¿cuántos premios se canjearon esta semana?"* o *"crea una campaña con ruleta para las mochilas nuevas"* — y lo hace. Sin abrir la consola, sin exportar Excel, sin esperar un reporte.
 
-- "¿Cuántos premios se canjearon este mes?"
-- "Crea una campaña de adquisición con ruleta para el producto X"
-- "¿Qué productos están por debajo del stock mínimo?"
+El agente traduce lo que le pides a las operaciones reales de tu negocio: consulta tu inventario, crea landing pages, configura ruletas de premios, revisa el progreso de tus cursos. Todo en segundos.
 
-El servidor se encarga de la autenticación, el aislamiento multi-tenant y la ejecución. Tú solo haces preguntas.
-
-## Verticals disponibles
+## Lo que puedes hacer
 
 <CardGroup cols={2}>
   <Card
@@ -22,51 +18,51 @@ El servidor se encarga de la autenticación, el aislamiento multi-tenant y la ej
     icon="chart-bar"
     href="/mcp/analytics"
   >
-    Consultas en lenguaje natural contra las vistas materializadas de MongoDB. Soporta pipelines de agregación simples y comparaciones entre períodos.
+    Pregunta lo que quieras sobre tus datos: cuántos giros de ruleta hubo, qué productos se están acabando, cuánta gente terminó un curso. Tu agente arma la consulta y te da los números.
   </Card>
   <Card
     title="Supply"
     icon="boxes-stacking"
     href="/mcp/supply"
   >
-    Catálogo global de stock, niveles por Nippy Center, alertas de bajo inventario, historial de retiros y creación de centros de distribución.
+    Revisa tu inventario sin entrar a la consola. Checa qué hay en cada centro, recibe alertas de lo que está por agotarse y registra entregas a tu equipo.
   </Card>
   <Card
     title="Roulettes"
     icon="ticket"
     href="/mcp/roulettes"
   >
-    Gamificación: crea y gestiona ruletas de premios físicos y digitales. Flujo completo propose → create con validación de inventario.
+    Arma ruletas de premios para tus campañas. Define qué se gana, con qué probabilidad, y deja que tu agente configure todo. Después solo activas cuando estés listo.
   </Card>
   <Card
     title="Flows"
     icon="route"
     href="/mcp/flows"
   >
-    Landing pages de registro para campañas. Configura campos, redirects (ruleta, curso, URL) y métricas de conversión.
+    Crea páginas de registro para tus campañas. Dile a tu agente qué datos pedir y a dónde mandar a la gente después — una ruleta, un curso, un link de WhatsApp.
   </Card>
   <Card
     title="Learning"
     icon="graduation-cap"
     href="/mcp/learning"
   >
-    LMS integrado: inscripciones, progreso por alumno, resultados de exámenes, certificados emitidos y creación de cursos.
+    Administra tus cursos desde el chat. Revisa quién va avanzando, quién aprobó el examen, y entrega certificados sin tocar la plataforma.
   </Card>
 </CardGroup>
 
-## Clientes compatibles
+## ¿Con qué cliente funciona?
 
-El servidor usa **MCP sobre HTTP streamable** (JSON-RPC 2.0). Funciona con cualquier cliente que soporte el protocolo:
+El servidor usa MCP estándar. Lo conectas una vez y funciona con:
 
-- **Claude Desktop** — integración nativa con herramientas
-- **Cursor** — agente con acceso a tools en el editor
-- **Agentes internos** — cualquier cliente Python/JS que implemente MCP
+- **Claude Desktop** — las tools aparecen en el chat, listas para usarse
+- **Cursor** — tu agente en el editor tiene acceso directo a tus datos
+- **OpenClaw**, **Hermes Agent** y cualquier otro cliente que hable MCP
 
 <Card
-  title="Conectarte en 3 pasos"
+  title="Conéctate en 3 pasos"
   icon="rocket"
   href="/quickstart"
   horizontal
 >
-  Obtén tu API key, agrega el servidor a tu cliente y haz tu primera consulta.
+  Saca tu API key, agrégala a tu cliente y haz tu primera pregunta.
 </Card>

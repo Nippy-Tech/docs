@@ -4,11 +4,17 @@ description: "Ejecuta pipelines de agregación MongoDB contra las vistas materia
 icon: "chart-bar"
 ---
 
-## ¿Qué hace esta vertical?
+## Ejemplos de lo que puedes preguntarle a tu agente
 
-La vertical de Analytics ejecuta pipelines de agregación de MongoDB contra las vistas materializadas de Nippy. Tú (o tu agente) construyen el pipeline — el servidor lo valida, inyecta el filtro de tenant y lo ejecuta.
+- "¿Cuántos giros de ruleta hubo esta semana vs la semana pasada?"
+- "¿Qué productos se retiraron más en el último mes? Dame el top 5"
+- "Compara cuánta gente se inscribió a cursos en enero vs febrero"
+- "¿Cuántos asistentes tuvo cada centro este trimestre?"
+- "Muéstrame la evolución diaria de premios canjeados en mayo"
 
-**El `businessId` se inyecta server-side automáticamente.** Nunca lo incluyas en el pipeline.
+Con Analytics, tú haces la pregunta en español y tu agente construye el pipeline de MongoDB, lo ejecuta contra tus datos y te da los resultados. No necesitas saber de bases de datos — aunque si sabes, también puedes escribir el pipeline tú mismo.
+
+**Lo importante:** el filtro por tu negocio se aplica solo. Nunca incluyas `businessId` en tus pipelines — el servidor lo inyecta automáticamente.
 
 ## Colecciones disponibles
 
