@@ -25,7 +25,7 @@
       "family": "DM Sans"
     }
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
   "navigation": {
     "tabs": [
       {
@@ -63,8 +63,7 @@
               "mcp/supply",
               "mcp/roulettes",
               "mcp/flows",
-              "mcp/learning",
-              "mcp/vision"
+              "mcp/learning"
             ]
           }
         ]

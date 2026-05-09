@@ -1,6 +1,6 @@
-<svg width="120" height="32" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="8" fill="#4D9EFF" fill-opacity="0.12"/>
-  <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="#4D9EFF" stroke-opacity="0.4"/>
+<svg width="140" height="32" viewBox="0 0 140 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="8" fill="#4D9EFF" fill-opacity="0.15"/>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="#4D9EFF" stroke-opacity="0.5"/>
   <text x="16" y="22" font-family="DM Sans, Inter, sans-serif" font-size="15" font-weight="700" fill="#378ADD" text-anchor="middle">N</text>
-  <text x="76" y="22" font-family="DM Sans, Inter, sans-serif" font-size="15" font-weight="600" fill="#080D14" text-anchor="middle" letter-spacing="-0.3">Nippy Platform</text>
+  <text x="88" y="22" font-family="DM Sans, Inter, sans-serif" font-size="15" font-weight="600" fill="#0F1624" text-anchor="middle" letter-spacing="-0.3">Nippy Platform</text>
 </svg>
