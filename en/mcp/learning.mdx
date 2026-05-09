@@ -1,21 +1,314 @@
 ---
 title: "Learning"
-description: "Courses, enrollments, progress, exams, and certificates"
+description: "Integrated LMS: courses, enrollments, student progress, exams, and certificates"
 icon: "graduation-cap"
 ---
 
-Learning tools let an agent manage LMS operations from the MCP client.
+## Examples of what you can ask your agent
 
-## What you can do
+- "How many people enrolled in the onboarding course this month?"
+- "Who's halfway through the safety course? Show me their progress"
+- "What percentage of students passed the final exam?"
+- "Issue Laura Martínez's certificate for her completed session"
+- "Create a new customer service course, with an exam and certificate"
 
-- List courses and enrollment counts.
-- Review student progress.
-- Check exam results.
-- Identify users who completed a course during a period.
+Learning lets you manage your LMS from chat. Check who's progressing, how exams are going, and issue certificates without logging into the platform. As with the other verticals, write operations show a preview before executing.
 
-## Example prompt
+---
 
-```text
-Which users completed the onboarding course this week?
-Include completion date and certificate status.
+## Read tools
+
+### `learning_list_courses`
+
+Lists the courses for this business.
+
+<ParamField body="limit" type="integer" default="100">
+  Maximum number of courses to return.
+</ParamField>
+
+**Response includes:** `_id`, `title`, `slug`, `description`, `published`, `isCertified`, `examApproveScore`, `created_at`
+
+```json
+{
+  "name": "learning_list_courses",
+  "arguments": {
+    "limit": 20
+  }
+}
 ```
+
+---
+
+### `learning_get_enrollment_stats`
+
+Gets enrollment statistics: counts by status (`in_progress`, `exam`, `completed`, `certified`, `failed`).
+
+<ParamField body="course_id" type="string">
+  Course ID. If omitted, returns statistics for all courses.
+</ParamField>
+
+<ParamField body="date_from" type="string">
+  Start date in ISO 8601 to filter by `startedAt`. Optional.
+</ParamField>
+
+<ParamField body="date_to" type="string">
+  End date in ISO 8601 to filter by `startedAt`. Optional.
+</ParamField>
+
+**Response:** `total_enrollments`, `by_status` (object with counts per status), `completion_rate`, `certification_rate`
+
+```json
+{
+  "name": "learning_get_enrollment_stats",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "date_from": "2026-01-01",
+    "date_to": "2026-05-08"
+  }
+}
+```
+
+---
+
+### `learning_get_course_progress`
+
+Gets progress per student for a specific course.
+
+<ParamField body="course_id" type="string" default="''">
+  Course ID to query.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="100">
+  Maximum number of progress records to return.
+</ParamField>
+
+**Response:** per student: `status`, current module, completed modules, `score`, exam status, and identity (`fullName`, `email`).
+
+```json
+{
+  "name": "learning_get_course_progress",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "limit": 50
+  }
+}
+```
+
+---
+
+### `learning_get_exam_results`
+
+Gets pass/fail rates and average exam scores.
+
+<ParamField body="course_id" type="string">
+  Course ID. If omitted, returns results for all courses.
+</ParamField>
+
+**Response:** `total_exams_started`, `total_exams_completed`, `pass_rate`, `average_score`
+
+```json
+{
+  "name": "learning_get_exam_results",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d"
+  }
+}
+```
+
+---
+
+### `learning_get_certificates_issued`
+
+Lists certificates issued by this business within a date range.
+
+<ParamField body="date_from" type="string">
+  Start date in ISO 8601. Optional.
+</ParamField>
+
+<ParamField body="date_to" type="string">
+  End date in ISO 8601. Optional.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="100">
+  Maximum number of certificates to return.
+</ParamField>
+
+**Response includes:** `session_id`, user info (`fullName`, `email`), course info (`title`, `slug`), certificate details, and `completedAt`.
+
+```json
+{
+  "name": "learning_get_certificates_issued",
+  "arguments": {
+    "date_from": "2026-01-01",
+    "date_to": "2026-05-08",
+    "limit": 50
+  }
+}
+```
+
+---
+
+## Write tools — Courses
+
+### `learning_propose_create_course`
+
+Generates a preview of the course draft. **Does not write to the database.**
+
+<ParamField body="title" type="string" required>
+  Course title.
+</ParamField>
+
+<ParamField body="slug" type="string" required>
+  Unique course slug in kebab-case (e.g. `"nippy-onboarding-2026"`).
+</ParamField>
+
+<ParamField body="description" type="string" default="''">
+  Course description.
+</ParamField>
+
+<ParamField body="exam_approve_score" type="float">
+  Minimum score to pass the exam (e.g. `70.0`). Optional.
+</ParamField>
+
+<ParamField body="is_certified" type="boolean" default="false">
+  Whether the course grants a certificate upon completion.
+</ParamField>
+
+```json
+{
+  "name": "learning_propose_create_course",
+  "arguments": {
+    "title": "Nippy Onboarding 2026",
+    "slug": "nippy-onboarding-2026",
+    "description": "Onboarding course for new members of the Nippy platform. Covers operational fundamentals, security, and console usage.",
+    "exam_approve_score": 70.0,
+    "is_certified": true
+  }
+}
+```
+
+---
+
+### `learning_approve_create_course`
+
+Creates the course draft in the database. Same parameters as `propose_create_course`.
+
+<Warning>
+  Only call this tool after showing the user the `propose_create_course` preview and receiving explicit confirmation.
+</Warning>
+
+**Response:** `{"_id": "...", "title": "Nippy Onboarding 2026", "status": "created"}`
+
+---
+
+### `learning_propose_update_course`
+
+Generates a preview of changes to apply to an existing course. **Does not write to the database.** Only non-None fields are applied.
+
+<ParamField body="course_id" type="string" required>
+  Course ID to update.
+</ParamField>
+
+<ParamField body="title" type="string">
+  New course title.
+</ParamField>
+
+<ParamField body="description" type="string">
+  New course description.
+</ParamField>
+
+<ParamField body="exam_approve_score" type="float">
+  New minimum passing score.
+</ParamField>
+
+<ParamField body="is_certified" type="boolean">
+  Whether the course grants a certificate.
+</ParamField>
+
+<ParamField body="published" type="boolean">
+  Whether the course is published and visible to students.
+</ParamField>
+
+```json
+{
+  "name": "learning_propose_update_course",
+  "arguments": {
+    "course_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "published": true,
+    "exam_approve_score": 80.0
+  }
+}
+```
+
+---
+
+### `learning_approve_update_course`
+
+Applies changes to the course. Same parameters as `propose_update_course`.
+
+<Warning>
+  Only call this tool after showing the user the `propose_update_course` preview and receiving explicit confirmation.
+</Warning>
+
+**Response:** `{"course_id": "664f1a2b3c4d5e6f7a8b9c0d", "updated": true}`
+
+---
+
+## Write tools — Certificates
+
+### `learning_propose_issue_certificate`
+
+Generates a preview of issuing a certificate. **Does not write to the database.** Verifies the session exists, is completed, and belongs to the business.
+
+<ParamField body="session_id" type="string" required>
+  ID of the completed course session.
+</ParamField>
+
+```json
+{
+  "name": "learning_propose_issue_certificate",
+  "arguments": {
+    "session_id": "665a1b2c3d4e5f6a7b8c9d0e"
+  }
+}
+```
+
+---
+
+### `learning_approve_issue_certificate`
+
+Forces certification of a completed session. Marks the session status as `"certified"`.
+
+<ParamField body="session_id" type="string" required>
+  ID of the course session to certify.
+</ParamField>
+
+<Warning>
+  Only call this tool after showing the user the `propose_issue_certificate` preview and receiving explicit confirmation. This tool **does not** generate the PDF or send the email — that is handled by `whatsapp-platform` separately.
+</Warning>
+
+```json
+{
+  "name": "learning_approve_issue_certificate",
+  "arguments": {
+    "session_id": "665a1b2c3d4e5f6a7b8c9d0e"
+  }
+}
+```
+
+---
+
+<Accordion title="Technical details (advanced)">
+  Schema references for the agent:
+
+  | URI | Name | Description |
+  |-----|------|-------------|
+  | `nippy://learning/schema/schemas` | `learning_schemas` | Course, session, and profile fields |
+  | `nippy://learning/schema/glossary` | `learning_glossary` | Business terms and mappings |
+  | `nippy://learning/skill` | `learning_skill` | Agent instructions |
+</Accordion>
+
+## Important notes
+
+- Courses must have `published: true` before students can access them. Use `propose_update_course` and `approve_update_course` to publish.
+- Issuing certificates from MCP only updates the session status to `"certified"`. PDF generation and email delivery are handled by `whatsapp-platform`.

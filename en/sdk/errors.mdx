@@ -4,7 +4,7 @@ description: "SDK error codes and handling patterns"
 icon: "triangle-exclamation"
 ---
 
-The SDK throws `NippyError` instances for expected operational errors. Use `NippyErrorCodes` to handle each case explicitly.
+The SDK throws `NippyError` instances for operational errors. Use `NippyErrorCodes` to handle each case explicitly.
 
 <Warning>
   Do not show internal error messages directly to users. Log `error.code`, `error.status`, and `error.traceId` for diagnostics.
@@ -53,20 +53,97 @@ try {
   </Accordion>
 
   <Accordion title="CAMPAIGN_NOT_FOUND">
-    **Cause:** The campaign does not exist, belongs to another business, or is inactive.
+    **Cause:** The `campaignId` does not exist, belongs to another business, or the campaign is inactive.
 
     **Fix:** Verify the campaign ID and status before exposing it in your app.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.CAMPAIGN_NOT_FOUND) {
+      return { reason: 'campaign_unavailable' }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="ALREADY_CLAIMED">
+    **Cause:** `claim()` was called for a prize that was already claimed.
+
+    **Fix:** Treat it as idempotent and show the already-claimed prize.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.ALREADY_CLAIMED) {
+      return { reason: 'already_claimed' }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="RESERVATION_EXPIRED">
+    **Cause:** The user did not claim the prize before the reservation expired.
+
+    **Fix:** Inform the user that time ran out and call `getState()` again.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.RESERVATION_EXPIRED) {
+      const state = await nippy.getState({ userId, campaignId })
+      return { reason: 'reservation_expired', state }
+    }
+    ```
   </Accordion>
 
   <Accordion title="UNAUTHORIZED">
     **Cause:** The API key is missing or invalid.
 
-    **Fix:** Check `NIPPY_API_KEY` and confirm the key prefix.
+    **Fix:** Check `NIPPY_API_KEY` and confirm it uses the correct prefix.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.UNAUTHORIZED) {
+      logger.error('Invalid Nippy API key')
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="FORBIDDEN">
+    **Cause:** The API key does not have access to the requested resource.
+
+    **Fix:** Check permissions and resource ownership in the console.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.FORBIDDEN) {
+      logger.error('Nippy key does not have access to this resource')
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="INVALID_PARAMETERS">
+    **Cause:** Required fields are missing or a value has the wrong format.
+
+    **Fix:** Validate data before calling the SDK.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.INVALID_PARAMETERS) {
+      return { reason: 'invalid_request' }
+    }
+    ```
   </Accordion>
 
   <Accordion title="SERVER_ERROR">
     **Cause:** Nippy returned a 5xx error after automatic retries.
 
     **Fix:** Log `traceId`, show a generic state, and retry later.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.SERVER_ERROR) {
+      logger.error('Nippy server error', { traceId: error.traceId })
+      return { reason: 'temporary_error' }
+    }
+    ```
   </Accordion>
 </AccordionGroup>
+
+## NippyError properties
+
+```typescript
+error.code      // string
+error.message   // string
+error.status    // number
+error.traceId   // string | undefined
+```

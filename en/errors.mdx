@@ -7,16 +7,16 @@ icon: "circle-exclamation"
 All error responses include a `detail` field with specific context.
 
 <Warning>
-  When reporting an error to soporte@nippy.la, include the `request_id`, `detail`, and the action you were running.
+  When reporting an error to support@nippy.la, include the `request_id`, the `detail` field, and the action you were running.
 </Warning>
 
-## HTTP errors
+## HTTP codes
 
 <AccordionGroup>
   <Accordion title="401 Unauthorized">
-    **Cause:** The API key is missing, incorrect, or does not use the `npk_` prefix.
+    **Cause:** The API key is missing, misspelled, or doesn't use the `npk_` prefix.
 
-    **Fix:** Send `X-API-Key` with a valid key.
+    **Fix:** Send the `X-API-Key` header with a valid key.
 
     ```bash
     curl https://ms.nippy.la/cognitive-layer/mcp \
@@ -25,20 +25,85 @@ All error responses include a `detail` field with specific context.
   </Accordion>
 
   <Accordion title="403 Forbidden">
-    **Cause:** The key does not have access to the requested vertical, tool, or resource.
+    **Cause:** The key doesn't have permissions for the vertical, tool, or resource requested.
 
-    **Fix:** Review permissions and confirm the resource belongs to your business.
+    **Fix:** Review permissions from the console and confirm the resource belongs to your business.
+
+    ```json
+    {
+      "error": "forbidden",
+      "detail": "Key does not have access to this tool"
+    }
+    ```
   </Accordion>
 
   <Accordion title="429 Too Many Requests">
     **Cause:** The client sent too many requests in a short period.
 
-    **Fix:** Wait and spread requests over time.
+    **Fix:** Wait a few seconds and spread calls over time.
+
+    ```typescript
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    ```
   </Accordion>
 
   <Accordion title="500 Internal Server Error">
     **Cause:** An internal error occurred while executing the request.
 
     **Fix:** Retry later. If it persists, report the `request_id`.
+
+    ```json
+    {
+      "error": "internal_server_error",
+      "request_id": "req_abc123"
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Common tool errors
+
+<AccordionGroup>
+  <Accordion title="MCP tools require tenant-bound auth">
+    **Cause:** The key is not tied to a specific business.
+
+    **Fix:** Use an `npk_*` API key created from `https://console.nippy.la/settings/api-keys`.
+
+    ```text
+    X-API-Key: npk_your_api_key_here
+    ```
+  </Accordion>
+
+  <Accordion title="No results in Analytics">
+    **Cause:** No data for the date range or the queried area does not contain that type of information.
+
+    **Fix:** Try a wider range and confirm the queried collection is correct.
+
+    ```json
+    {
+      "collection": "roulettesMaterializedView",
+      "dateRange": "last_90_days"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Roulette not found or does not belong to this business">
+    **Cause:** The roulette ID doesn't exist or belongs to another business.
+
+    **Fix:** Use `roulettes_list_roulettes` to get valid IDs.
+
+    ```text
+    List my active roulettes and their IDs
+    ```
+  </Accordion>
+
+  <Accordion title="Supply withdrawal validation error">
+    **Cause:** The center, product, or stock doesn't pass server validation.
+
+    **Fix:** Verify IDs with `supply_list_nippy_centers` and `supply_list_nippy_center_stocks` before retrying.
+
+    ```text
+    Show me the available stock by center before registering the withdrawal
+    ```
   </Accordion>
 </AccordionGroup>

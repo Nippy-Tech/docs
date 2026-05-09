@@ -1,0 +1,151 @@
+---
+title: "MCP quickstart"
+description: "Connect your MCP client to Nippy in 3 steps"
+icon: "rocket"
+---
+
+<Steps>
+  <Step title="Get your API key">
+    The Nippy key starts with `npk_` and determines which business you can access.
+
+    ```text
+    https://console.nippy.la/settings/api-keys
+    ```
+
+    <Note>
+      Your `npk_` key grants access to your business data. Treat it like a password.
+    </Note>
+  </Step>
+
+  <Step title="Add the server to your client">
+    The Nippy MCP endpoint is:
+
+    ```text
+    https://ms.nippy.la/cognitive-layer/mcp
+    ```
+
+    <Tabs>
+      <Tab title="Claude Desktop">
+        Open your configuration file:
+
+        **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+        **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+        ```json
+        {
+          "mcpServers": {
+            "nippy": {
+              "url": "https://ms.nippy.la/cognitive-layer/mcp",
+              "headers": {
+                "X-API-Key": "npk_your_api_key_here"
+              }
+            }
+          }
+        }
+        ```
+
+        Restart Claude Desktop and test with: "Show me what active roulettes I have".
+      </Tab>
+
+      <Tab title="Cursor">
+        Go to **Settings** > **MCP** and add a new server:
+
+        ```json
+        {
+          "mcpServers": {
+            "nippy": {
+              "url": "https://ms.nippy.la/cognitive-layer/mcp",
+              "headers": {
+                "X-API-Key": "npk_your_api_key_here"
+              }
+            }
+          }
+        }
+        ```
+
+        Save, restart the workspace and test with: "How many registration flows do I have and what's their conversion rate?".
+      </Tab>
+
+      <Tab title="OpenClaw">
+        Use the same format as Claude Desktop:
+
+        ```json
+        {
+          "mcpServers": {
+            "nippy": {
+              "url": "https://ms.nippy.la/cognitive-layer/mcp",
+              "headers": {
+                "X-API-Key": "npk_your_api_key_here"
+              }
+            }
+          }
+        }
+        ```
+
+        Test with: "Give me a summary of my courses and how many students each one has".
+      </Tab>
+
+      <Tab title="Hermes Agent">
+        Edit `~/.hermes/config.yaml`:
+
+        ```yaml
+        mcp_servers:
+          nippy:
+            url: https://ms.nippy.la/cognitive-layer/mcp
+            headers:
+              X-API-Key: npk_your_api_key_here
+        ```
+
+        Test with: "Are there any low-stock products? Show me which ones".
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Make your first query">
+    Once connected, the agent can use the tools available for your business.
+
+    Examples:
+
+    - "How many prizes were redeemed this month vs last month?"
+    - "Create a welcome roulette with 3 prizes: backpack, 10% discount, and keep trying"
+    - "Who completed the onboarding course this week?"
+    - "Register a delivery of 5 t-shirts to María at the Monterrey center"
+  </Step>
+</Steps>
+
+## Direct call
+
+If you prefer to invoke tools manually, the server accepts JSON-RPC 2.0. Each request must include the `X-API-Key` header.
+
+```bash
+curl -X POST https://ms.nippy.la/cognitive-layer/mcp \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: npk_your_api_key_here" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/list"
+  }'
+```
+
+<Warning>
+  Never include `businessId` in analytics pipelines or other parameters. The server injects it automatically from your API key.
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Analytics" icon="chart-bar" href="/en/mcp/analytics">
+    Query data and compare metrics across periods.
+  </Card>
+  <Card title="Supply" icon="box" href="/en/mcp/supply">
+    Manage inventory, stock alerts, and deliveries.
+  </Card>
+  <Card title="Roulettes" icon="ticket" href="/en/mcp/roulettes">
+    Create and review prize roulettes.
+  </Card>
+  <Card title="Flows" icon="route" href="/en/mcp/flows">
+    Manage registration landing pages and conversion.
+  </Card>
+</CardGroup>

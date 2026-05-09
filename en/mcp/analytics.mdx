@@ -1,25 +1,177 @@
 ---
 title: "Analytics"
-description: "Query Nippy data in natural language"
+description: "Query your roulette, supply, course, and more data in natural language"
 icon: "chart-bar"
 ---
 
-Analytics tools let an MCP client query operational data across roulettes, supply, learning, and flows.
+## Examples of what you can ask your agent
 
-## Common requests
+- "How many roulette spins were there this week vs last week?"
+- "Which products had the most withdrawals last month? Give me the top 5"
+- "Compare how many people enrolled in courses in January vs February"
+- "How many attendees did each center have this quarter?"
+- "Show me the daily evolution of redeemed prizes in May"
 
-- Compare redeemed prizes this month vs last month.
-- Show active roulettes and conversion by campaign.
-- Find courses with the highest completion rate.
-- Summarize low-stock products by center.
+With Analytics, you ask questions in natural language and your agent turns them into the right query against your data. You don't need to know anything about databases — your agent handles everything.
 
-<Warning>
-  Do not include `businessId` in analytics pipelines. Nippy injects tenant scope from your API key.
-</Warning>
+**Your business is isolated automatically.** You only see your own data, without needing to pass IDs or filters.
 
-## Recommended prompt pattern
+## What data can you query?
 
-```text
-Compare roulette performance for the last 30 days.
-Group by roulette name and include spins, claims, and conversion rate.
+You can ask about these areas of your business:
+
+| Area | What you can ask |
+|------|------------------|
+| Roulettes | Spins, prizes won, gift types, and dates |
+| Supply | Inventory withdrawals by worker and product |
+| Stock | Current stock levels by product |
+| Courses | Enrollments and people who completed each course |
+| Learning | Student progress in the LMS |
+| Attendees | People who attended centers and events |
+
+Your agent knows exactly which data corresponds to each area. Just ask your question and it chooses the right source.
+
+## Tools
+
+### `analytics_execute_pipeline`
+
+Ask a question about your data and get the results. Use it for direct queries like "how many prizes were redeemed this month?".
+
+<ParamField body="collection" type="string" required>
+  Data area to query. Your agent picks the right one automatically.
+</ParamField>
+
+<ParamField body="pipeline" type="array" required>
+  The query itself. Your agent builds it automatically from your question. It's an array of steps that transform and filter data to answer exactly what you need.
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "collection": "roulettesMaterializedView",
+  "collection_label": "Roulettes",
+  "count": 3,
+  "results": [...],
+  "summary": "3 result(s) · Roulettes"
+}
 ```
+
+**Example — total roulette spins this month:**
+
+```json
+{
+  "name": "analytics_execute_pipeline",
+  "arguments": {
+    "collection": "roulettesMaterializedView",
+    "pipeline": [
+      {
+        "$match": {
+          "createdAt": {
+            "$gte": "2026-05-01T00:00:00Z",
+            "$lte": "2026-05-08T23:59:59Z"
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": null,
+          "totalSpins": {"$sum": 1},
+          "totalWins": {
+            "$sum": {"$cond": [{"$eq": ["$result", "win"]}, 1, 0]}
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+**Example — top 5 products with most withdrawals:**
+
+```json
+{
+  "name": "analytics_execute_pipeline",
+  "arguments": {
+    "collection": "nippysupplyMaterializedView",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": "$productName",
+          "totalWithdrawals": {"$sum": "$quantity"}
+        }
+      },
+      {"$sort": {"totalWithdrawals": -1}},
+      {"$limit": 5}
+    ]
+  }
+}
+```
+
+**Example — courses completed by month:**
+
+```json
+{
+  "name": "analytics_execute_pipeline",
+  "arguments": {
+    "collection": "coursesMaterializedView",
+    "pipeline": [
+      {
+        "$match": {
+          "status": "completed"
+        }
+      },
+      {
+        "$group": {
+          "_id": {
+            "$dateToString": {
+              "format": "%Y-%m",
+              "date": "$completedAt"
+            }
+          },
+          "total": {"$sum": 1}
+        }
+      },
+      {"$sort": {"_id": 1}}
+    ]
+  }
+}
+```
+
+---
+
+### `analytics_execute_pipelines`
+
+Compare two or more periods or segments at once. Use it for questions like "compare April vs May spins" or "Q1 vs Q2 enrollments".
+
+<ParamField body="queries" type="array" required>
+  List of 2 to 5 queries. Each with:
+  - `label` (string): descriptive name for the segment, e.g. `"April 2026"`
+  - `collection` (string): data area (your agent picks it)
+  - `pipeline` (array): the query (your agent builds it)
+</ParamField>
+
+---
+
+<Accordion title="Technical details (advanced)">
+  If you want to write queries manually or need the exact names, here are the details:
+
+  **Data areas and their identifiers:**
+
+  | Area | Identifier |
+  |------|-----------|
+  | Roulettes | `roulettesMaterializedView` |
+  | Supply | `nippysupplyMaterializedView` |
+  | Stock | `stockLevelsMaterializedView` |
+  | Courses | `coursesMaterializedView` |
+  | Learning | `nippyLearnMaterializedView` |
+  | Attendees | `attendeesMaterializedView` |
+
+  **Allowed operations:** `$match`, `$group`, `$sort`, `$limit`, `$project`, `$unwind`, `$lookup`, `$addFields`, `$count`
+  
+  **Disallowed operations:** `$out`, `$merge`, `$function`, `$accumulator`, `$where`, `$facet`
+
+  **Limit:** maximum 100 results. **Dates:** use ISO 8601 format (`"2026-01-01"` or `"2026-01-01T00:00:00Z"`).
+
+  **Important:** do not include `businessId` in any query. The server injects it automatically.
+</Accordion>

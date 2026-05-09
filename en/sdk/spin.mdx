@@ -65,8 +65,24 @@ curl -X POST https://ms.nippy.la/v1/public/spins \
   Display name of the prize.
 </ResponseField>
 
+<ResponseField name="gift.pointsValue" type="number | null">
+  Points awarded when `outcome` is `won_points`.
+</ResponseField>
+
 <ResponseField name="animation" type="object">
   Data for rendering a deterministic animation.
+</ResponseField>
+
+<ResponseField name="animation.seed" type="number">
+  Seed used to reproduce the animation.
+</ResponseField>
+
+<ResponseField name="animation.durationMs" type="number">
+  Recommended animation duration in milliseconds.
+</ResponseField>
+
+<ResponseField name="animation.targetAngle" type="number">
+  Recommended target angle for the roulette.
 </ResponseField>
 
 <ResponseField name="inventory.remaining" type="number">
@@ -75,4 +91,8 @@ curl -X POST https://ms.nippy.la/v1/public/spins \
 
 <ResponseField name="prizeReservation" type="object | null">
   Prize reservation when the result requires `claim()`.
+</ResponseField>
+
+<ResponseField name="prizeReservation.claimRequired" type="boolean">
+  Whether you must call `claim()` to complete delivery.
 </ResponseField>

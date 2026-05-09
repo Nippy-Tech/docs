@@ -4,19 +4,83 @@ description: "Review webhook delivery history for troubleshooting"
 icon: "list"
 ---
 
-The webhook log helps diagnose delivery failures and retries.
+Nippy maintains a log of the last 20 webhook deliveries for your tenant. Use it to verify which events were sent, when, and whether they were received successfully.
 
-## Use it to check
+## Query the log
 
-- Event type and timestamp
-- Delivery status
-- HTTP response code
-- Retry count
-- Error message returned by your endpoint
+```http
+GET https://ms.nippy.la/v1/public/webhooks
+x-api-key: npk_live_xxx
+x-business-id: your-business-id
+```
 
-## Common causes
+```bash
+curl https://ms.nippy.la/v1/public/webhooks \
+  -H "x-api-key: npk_live_xxx" \
+  -H "x-business-id: your-business-id"
+```
 
-- Invalid signature verification because the body was parsed before verification
-- Endpoint returned a non-2xx response
-- Timeout while processing the webhook
-- Incorrect `webhookSecret`
+## Response
+
+```json
+[
+  {
+    "webhookId": "wh_abc123",
+    "event": "spin.completed",
+    "status": "delivered",
+    "deliveryAttempt": 1,
+    "traceId": "trace_xyz",
+    "createdAt": "2026-04-30T22:40:34.147Z"
+  },
+  {
+    "webhookId": "wh_def456",
+    "event": "spin.completed",
+    "status": "failed",
+    "deliveryAttempt": 4,
+    "traceId": "trace_uvw",
+    "createdAt": "2026-04-30T21:15:00.000Z"
+  }
+]
+```
+
+## Status values
+
+| Status | Meaning |
+|--------|---------|
+| `delivered` | Your endpoint responded with `2xx` |
+| `pending` | Waiting to be sent or in retry process |
+| `failed` | All retries exhausted without a `2xx` response |
+
+## Diagnosing failed deliveries
+
+If you see deliveries with `status: failed`, check:
+
+1. **Your endpoint returns `2xx`** — any other status code (including `200 OK` with an error body) counts as a failure
+2. **The endpoint is reachable from the internet** — Nippy cannot reach `localhost` or private IPs
+3. **The signature is verified correctly** — if you reject the signature with `401`, Nippy counts it as a failure and retries
+
+```typescript
+// Make sure your handler always responds 200 before processing
+app.post('/webhooks/nippy', express.raw({ type: 'application/json' }), async (req, res) => {
+  // Respond 200 first, process later
+  res.status(200).send('ok')
+
+  const isValid = verifyWebhookSignature({ ... })
+  if (!isValid) return  // log but don't crash
+
+  const event = JSON.parse(req.body.toString())
+  await processEvent(event)  // async, doesn't block the response
+})
+```
+
+<Note>
+  Responding `200` before processing the event is a best practice. It avoids timeouts if your processing takes longer than expected and prevents unnecessary retries.
+</Note>
+
+## Using traceId for support
+
+Each delivery has a unique `traceId`. If you need the Nippy team to investigate a specific delivery, include the `traceId` in your report:
+
+```
+support@nippy.la — subject: "Failed webhook traceId: trace_xyz"
+```

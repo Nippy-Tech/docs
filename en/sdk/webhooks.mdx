@@ -1,33 +1,193 @@
 ---
 title: "Webhooks"
-description: "Events Nippy sends to your backend"
+description: "Events Nippy sends to your backend with each completed mechanic"
 icon: "webhook"
 ---
 
-Nippy sends signed webhooks when mechanics complete. Use them to persist results, credit rewards, and update your own systems.
+Nippy sends signed webhooks to the `webhookUrl` configured in your campaign. They are the main channel for knowing what happened — always verify the signature before processing.
 
-## Signature verification
+## Envelope structure
 
-Verify the signature before processing the event.
+All events share the same envelope:
+
+```json
+{
+  "id": "wh_uuid",
+  "event": "spin.completed",
+  "deliveryAttempt": 1,
+  "traceId": "trace_uuid",
+  "createdAt": "2026-04-30T22:40:34.147Z",
+  "data": {
+    "businessId": "bank-bbva-123",
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "spinId": "spin-xyz",
+    "outcome": "won_points",
+    "gift": {
+      "giftId": "gift-001",
+      "name": "500 points",
+      "pointsValue": 500
+    },
+    "claimRequired": false,
+    "spunAt": "2026-04-30T22:40:34.128Z"
+  }
+}
+```
+
+## Headers you receive
+
+| Header | Content |
+|--------|---------|
+| `X-Nippy-Event` | Event type (e.g. `spin.completed`) |
+| `X-Nippy-Signature` | HMAC-SHA256 signature of the raw body |
+
+## Verify the signature
+
+**Always verify the signature.** If you don't, anyone can send fake webhooks to your endpoint.
 
 ```typescript
 import { verifyWebhookSignature } from '@nippy/sdk'
+import express from 'express'
 
-const isValid = verifyWebhookSignature({
-  body: rawBody,
-  signature: req.headers['x-nippy-signature'] as string,
-  secret: process.env.NIPPY_WEBHOOK_SECRET
-})
+const app = express()
+
+app.post('/webhooks/nippy',
+  express.raw({ type: 'application/json' }),  // raw body, not parsed
+  (req, res) => {
+    const isValid = verifyWebhookSignature({
+      body: req.body.toString(),
+      signature: req.headers['x-nippy-signature'] as string,
+      secret: process.env.NIPPY_WEBHOOK_SECRET
+    })
+
+    if (!isValid) return res.status(401).send('Invalid signature')
+
+    const event = JSON.parse(req.body.toString())
+
+    switch (event.event) {
+      case 'spin.completed':
+        handleSpinCompleted(event.data)
+        break
+      case 'claim.completed':
+        handleClaimCompleted(event.data)
+        break
+      case 'spin_auto_unlocked':
+        handleAutoUnlocked(event.data)
+        break
+      case 'grant_points_awarded':
+        handlePointsAwarded(event.data)
+        break
+    }
+
+    res.status(200).send('ok')
+  }
+)
 ```
 
 <Warning>
-  Verify against the raw request body. If you parse JSON first, signature verification can fail.
+  Use `express.raw()`, not `express.json()`. The signature is calculated over the raw body — if you parse it before verifying, verification will always fail.
 </Warning>
 
-## Events
+## Available events
 
-| Event | When it fires |
-|-------|---------------|
-| `spin.completed` | A spin finished and selected an outcome. |
-| `claim.completed` | A prize claim was completed. |
-| `webhook.failed` | Delivery failed after retries. |
+### spin.completed
+
+Fires when a spin completes (manual or automatic).
+
+```json
+{
+  "event": "spin.completed",
+  "data": {
+    "businessId": "bank-123",
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "spinId": "spin-xyz",
+    "outcome": "won_points",
+    "gift": {
+      "giftId": "gift-001",
+      "name": "500 points",
+      "pointsValue": 500
+    },
+    "claimRequired": false,
+    "spunAt": "2026-04-30T22:40:34.128Z"
+  }
+}
+```
+
+**What to do here:** if `outcome === 'won_points'` and `claimRequired === false`, credit `gift.pointsValue` to the user.
+
+### claim.completed
+
+Fires when the user claims a prize that required confirmation.
+
+```json
+{
+  "event": "claim.completed",
+  "data": {
+    "businessId": "bank-123",
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "spinId": "spin-xyz",
+    "claimId": "claim-001",
+    "gift": {
+      "giftId": "gift-002",
+      "name": "Sony Headphones",
+      "type": "won_physical"
+    },
+    "claimedAt": "2026-04-30T22:45:00.000Z"
+  }
+}
+```
+
+**What to do here:** initiate the delivery process for the physical or digital prize.
+
+### spin_auto_unlocked
+
+Fires when `track()` evaluated the rules and unlocked an automatic spin, just before spinning.
+
+```json
+{
+  "event": "spin_auto_unlocked",
+  "data": {
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "eventType": "card.purchase.completed",
+    "ruleId": "rule-001"
+  }
+}
+```
+
+### grant_points_awarded
+
+Fires when a rule with `action: 'grant_points'` was activated and points were credited directly.
+
+```json
+{
+  "event": "grant_points_awarded",
+  "data": {
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "pointsValue": 200,
+    "eventType": "card.purchase.completed"
+  }
+}
+```
+
+**What to do here:** credit `data.pointsValue` to the user in your system.
+
+## Retries
+
+If your endpoint returns any status code other than `2xx`, Nippy retries delivery automatically:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 | Immediate |
+| 2 | 30 seconds |
+| 3 | 5 minutes |
+| 4 | 30 minutes |
+
+After the fourth failed attempt, the webhook is marked as `failed`. You can check it in the [webhook log](/sdk/webhook-log).
+
+## Idempotency
+
+The envelope `id` field is unique per delivery. If you receive the same `id` twice (network retry), process it only once by storing already-processed IDs in your database.

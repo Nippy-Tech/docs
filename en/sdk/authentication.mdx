@@ -6,41 +6,43 @@ icon: "key"
 
 ## API key format
 
-Nippy API keys use the `npk_live_` prefix followed by a random string:
+All Nippy keys use the `npk_live_` prefix followed by a random string:
 
-```text
+```
 npk_live_a1b2c3d4e5f6...
 ```
 
-Each key is tied to a specific business. The server resolves the business from the key automatically for SDK calls.
+Each key is tied to a specific `businessId`. The server resolves your business automatically from the key — you don't need to pass it in SDK methods, but you do in direct REST API calls.
 
 <Warning>
-  Never expose your API key in client-side code, including browsers and mobile apps. Use it only from your backend.
+  Never expose your key in client-side code (browser, mobile app). Use it only in your backend.
 </Warning>
 
 ## With the SDK
 
-Pass the key once when you create the client:
+Pass it in the constructor once:
 
 ```typescript
 import { NippyClient } from '@nippy/sdk'
 
 const nippy = new NippyClient({
-  apiKey: process.env.NIPPY_API_KEY,
+  apiKey: process.env.NIPPY_API_KEY,  // never hardcoded
   baseUrl: 'https://ms.nippy.la'
 })
 ```
 
-The SDK includes the key in each request automatically.
+The SDK includes it automatically in every request. You don't need to manage it manually.
 
-## With direct REST calls
+## With direct REST API calls
 
-For administration endpoints that do not go through the SDK, include the required headers:
+For administration endpoints (creating campaigns, rules, viewing logs) that don't go through the SDK, include both headers:
 
 ```http
 x-api-key: npk_live_xxx
 x-business-id: your-business-id
 ```
+
+Example:
 
 ```bash
 curl https://ms.nippy.la/v1/public/campaigns \
@@ -50,13 +52,25 @@ curl https://ms.nippy.la/v1/public/campaigns \
 
 ## Authentication errors
 
-| HTTP status | Cause | Fix |
-|-------------|-------|-----|
-| `401 Unauthorized` | Invalid, expired, or missing key | Verify the `x-api-key` header. |
-| `403 Forbidden` | The key cannot access the requested resource | Confirm the business and permissions. |
+| HTTP code | Cause | Fix |
+|-----------|-------|-----|
+| `401 Unauthorized` | Key invalid, expired, or missing | Verify the key is correct and in the `x-api-key` header |
+| `403 Forbidden` | The key does not have access to the requested resource | Verify the `businessId` matches your key |
+
+```typescript
+import { NippyError, NippyErrorCodes } from '@nippy/sdk'
+
+try {
+  await nippy.spin({ userId, campaignId })
+} catch (error) {
+  if (error instanceof NippyError && error.code === NippyErrorCodes.UNAUTHORIZED) {
+    // verify the API key is valid
+  }
+}
+```
 
 ## Best practices
 
-- Store the key in `NIPPY_API_KEY`.
-- Rotate the key if you suspect it was compromised.
-- Use one `NippyClient` instance per process.
+- Store the key in environment variables (`NIPPY_API_KEY`)
+- Rotate the key if you suspect it was compromised — contact us at support@nippy.la
+- Use a single `NippyClient` instance per process; do not recreate it per request

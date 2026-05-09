@@ -1,16 +1,16 @@
 ---
 title: "Authentication"
-description: "Authenticate with Nippy MCP using X-API-Key or OAuth Bearer JWT"
+description: "How to authenticate with Nippy MCP: X-API-Key and OAuth Bearer JWT"
 icon: "key"
 ---
 
 ## Authentication methods
 
-Nippy MCP supports API key authentication and OAuth Bearer tokens. In both cases, the server resolves the tenant automatically. You never need to pass `business_id` to tools.
+The Nippy MCP server and REST endpoints support two authentication methods. Both resolve the tenant's `business_id` automatically — you never need to pass it explicitly in tool calls.
 
-## X-API-Key
+### X-API-Key (recommended)
 
-Use your Nippy API key in the `X-API-Key` header:
+Include your Nippy API Key in the `X-API-Key` header of every request:
 
 ```http
 POST /mcp
@@ -18,11 +18,11 @@ X-API-Key: npk_your_api_key_here
 Content-Type: application/json
 ```
 
-Keys with the `npk_*` prefix are tenant-bound keys. The server uses them to determine which business the request can access.
+Keys with the `npk_*` prefix are tenant keys. The server resolves them against the database to determine which `business_id` you're authorized for, without exposing that ID in the request.
 
-## OAuth Bearer JWT
+### OAuth Bearer JWT
 
-Clients that implement OAuth can exchange credentials for an access token:
+For clients implementing the full OAuth protocol, the server exposes a token exchange endpoint:
 
 ```http
 POST /oauth/token
@@ -35,18 +35,48 @@ Content-Type: application/json
 }
 ```
 
+The response includes an `access_token` you can use as a Bearer:
+
+```http
+POST /mcp
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
 <Note>
-  For most Claude Desktop and Cursor integrations, use `X-API-Key` directly.
+  For most Claude Desktop and Cursor integrations, use `X-API-Key` directly. The OAuth flow is for MCP clients that implement the full authentication protocol.
 </Note>
+
+## How to get your API key
+
+API keys are generated from the Nippy Console:
+
+1. Log in at [https://console.nippy.la](https://console.nippy.la)
+2. Go to **Settings** > **API Keys**
+3. Click **Generate new key**
+4. Copy the key (`npk_xxxxxxxx` format)
+
+<Warning>
+  Never share your `npk_*` key. It has full read/write access to your business data. If a key is compromised, revoke it immediately from the Console.
+</Warning>
 
 ## Multi-tenant isolation
 
-Every API key is tied to one business. Tools filter data by the resolved business automatically, including analytics queries.
+Each API key is tied to exactly one business. The server guarantees that:
+
+1. **All tools** filter data by the `business_id` resolved from the key — you cannot query another business's data even if you know its ID.
+2. **Analytics** has a double security layer: the server ensures you only see your business's data, regardless of how the query is formulated.
+3. **Roulettes, Supply, Learning, Flows** automatically filter by your business on every operation.
 
 ## Authentication errors
 
 | Code | Message | Cause |
 |------|---------|-------|
-| `401` | `Unauthorized` | Missing, invalid, or malformed `X-API-Key` |
-| `403` | `Forbidden` | Valid key without access to the requested resource |
-| `400` | `MCP tools require tenant-bound auth` | The key is not a tenant-bound `npk_*` key |
+| `401` | `Unauthorized` | `X-API-Key` header missing, invalid, or malformed |
+| `403` | `Forbidden` | Valid key but without permissions for the requested resource |
+| `400` | `ValueError: MCP tools require tenant-bound auth (npk_* key or OAuth Bearer)` | The key is not tied to a tenant (not an `npk_*` key) |
+
+If you get an authentication error, check that:
+
+- The header is named `X-API-Key` (not `Authorization`, not `x-api-key` without dashes)
+- The key has the `npk_` prefix
+- The key hasn't expired or been revoked in the Console

@@ -1,0 +1,137 @@
+---
+title: "SDK quickstart"
+description: "First spin in under 30 minutes"
+icon: "rocket"
+---
+
+This guide assumes you already have a `npk_live_*` API key. If you don't, email us at support@nippy.la.
+
+<Steps>
+  <Step title="Install the SDK">
+    ```bash
+    npm install github:Nippy-Tech/gamification_nippy_sdk
+    ```
+  </Step>
+
+  <Step title="Initialize the client">
+    ```typescript
+    import { NippyClient } from '@nippy/sdk'
+
+    const nippy = new NippyClient({
+      apiKey: process.env.NIPPY_API_KEY,   // npk_live_xxx
+      baseUrl: 'https://ms.nippy.la'
+    })
+    ```
+
+    <Note>
+      Instantiate `NippyClient` once and reuse it across your entire app. It's thread-safe and handles retries automatically.
+    </Note>
+  </Step>
+
+  <Step title="Create a campaign">
+    Campaigns are created via the API directly, not through the SDK. Call this endpoint once to set up your first test campaign:
+
+    ```bash
+    curl -X POST https://ms.nippy.la/v1/public/campaigns \
+      -H "x-api-key: npk_live_xxx" \
+      -H "x-business-id: your-business-id" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Test campaign",
+        "webhookUrl": "https://your-app.com/webhooks/nippy",
+        "webhookSecret": "a-secure-secret",
+        "spinsAllowed": 3,
+        "cooldownMinutes": 0,
+        "gifts": [
+          {
+            "name": "500 points",
+            "type": "won_points",
+            "pointsValue": 500,
+            "probability": 70
+          },
+          {
+            "name": "Lose",
+            "type": "lost",
+            "probability": 30
+          }
+        ]
+      }'
+    ```
+
+    The response includes the `campaignId` you'll use in the following steps.
+
+    ```json
+    {
+      "campaignId": "camp-abc123",
+      "businessId": "your-business-id",
+      "name": "Test campaign",
+      "status": "active",
+      "createdAt": "2026-05-01T00:00:00.000Z"
+    }
+    ```
+  </Step>
+
+  <Step title="Run your first spin">
+    With the `campaignId` in hand, make your first spin:
+
+    ```typescript
+    const result = await nippy.spin({
+      userId: 'test-user-1',
+      campaignId: 'camp-abc123'
+    })
+
+    console.log(result.outcome)  // 'won_points' or 'lost'
+    console.log(result.gift)     // { name: '500 points', pointsValue: 500, ... }
+    ```
+  </Step>
+
+  <Step title="Receive the webhook">
+    Nippy sends a webhook to your `webhookUrl` every time a spin completes. Verify the signature before processing the result.
+
+    ```typescript
+    import { verifyWebhookSignature } from '@nippy/sdk'
+    import express from 'express'
+
+    const app = express()
+
+    app.post('/webhooks/nippy', express.raw({ type: 'application/json' }), (req, res) => {
+      const isValid = verifyWebhookSignature({
+        body: req.body.toString(),
+        signature: req.headers['x-nippy-signature'] as string,
+        secret: process.env.NIPPY_WEBHOOK_SECRET
+      })
+
+      if (!isValid) return res.status(401).send('Invalid signature')
+
+      const event = JSON.parse(req.body.toString())
+
+      if (event.event === 'spin.completed' && event.data.outcome === 'won_points') {
+        // credit event.data.gift.pointsValue to event.data.userId
+      }
+
+      res.status(200).send('ok')
+    })
+    ```
+
+    <Note>
+      Use `express.raw()`, not `express.json()`. The signature is verified against the raw body.
+    </Note>
+  </Step>
+</Steps>
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Campaigns" icon="flag" href="/en/sdk/campaigns">
+    Create rules to trigger spins automatically from business events.
+  </Card>
+  <Card title="SDK Reference" icon="code" href="/en/sdk/track">
+    Full documentation for track(), spin(), getState(), and claim().
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/en/sdk/webhooks">
+    All events you receive and how to verify their signature.
+  </Card>
+  <Card title="Error handling" icon="triangle-exclamation" href="/en/sdk/errors">
+    NippyErrorCodes and retry behavior.
+  </Card>
+</CardGroup>

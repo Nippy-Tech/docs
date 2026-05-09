@@ -51,10 +51,26 @@ curl -X POST https://ms.nippy.la/v1/public/claims \
   Claimed prize.
 </ResponseField>
 
+<ResponseField name="gift.giftId" type="string">
+  Claimed prize ID.
+</ResponseField>
+
+<ResponseField name="gift.name" type="string">
+  Claimed prize name.
+</ResponseField>
+
+<ResponseField name="gift.type" type="string">
+  Prize type. Examples: `won_digital`, `won_physical`.
+</ResponseField>
+
+<ResponseField name="gift.pointsValue" type="number | null">
+  Points associated with the prize, if applicable.
+</ResponseField>
+
 <ResponseField name="claimedAt" type="string">
   ISO 8601 timestamp when the claim was completed.
 </ResponseField>
 
 <Warning>
-  Reservations expire. If the user does not claim before `prizeReservation.expiresAt`, the prize is released back to campaign inventory.
+  Reservations have an expiration date. If the user does not claim before `prizeReservation.expiresAt`, the prize is released back to inventory.
 </Warning>

@@ -1,20 +1,416 @@
 ---
 title: "Supply"
-description: "Inventory, centers, stock alerts, and withdrawals"
-icon: "boxes-stacking"
+description: "Inventory management: global stock, levels per Nippy Center, alerts, withdrawals, and distribution centers"
+icon: "box"
 ---
 
-Supply tools let an agent inspect and operate inventory across Nippy Centers.
+## Examples of what you can ask your agent
 
-## What you can do
+- "What products do I have in inventory and how many of each are left?"
+- "Is anything below the minimum stock? Tell me what needs urgent replenishment"
+- "Show me the distribution centers I have and what's in each"
+- "Register a delivery of 3 uniforms to Carlos at the Guadalajara center"
+- "How many withdrawals were there in April? Give me the full history"
 
-- List centers and available stock.
-- Find products below minimum stock.
-- Register withdrawals.
-- Review inventory movement by period.
+Supply lets you manage your entire inventory from chat. Check what's available, get alerts when something is running low, and record movements. Operations that modify data (creating centers, assigning stock, recording withdrawals) always show a preview before executing — nothing is written without your confirmation.
 
-## Example prompt
+---
 
-```text
-Show products with low stock by center and suggest which ones need replenishment first.
+## Read tools
+
+### `supply_list_stocks`
+
+Lists the global product catalog (stock) for this business.
+
+<ParamField body="limit" type="integer" default="100">
+  Maximum number of items to return.
+</ParamField>
+
+**Response includes:** `_id`, `productName`, `totalStock`, `minStockAlert`, `type`, `createdAt`
+
+```json
+{
+  "name": "supply_list_stocks",
+  "arguments": {
+    "limit": 50
+  }
+}
 ```
+
+---
+
+### `supply_list_nippy_center_stocks`
+
+Lists stock levels per Nippy Center. Optionally filters by a specific center.
+
+<ParamField body="nippy_center_id" type="string" default="''">
+  Nippy Center ID. If omitted, returns all centers for the business.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="100">
+  Maximum number of items to return.
+</ParamField>
+
+**Response includes:** `_id`, `stockId`, `nippyCenterId`, `currentStock`, `minStockAlert`, `criticality`, `productName`
+
+```json
+{
+  "name": "supply_list_nippy_center_stocks",
+  "arguments": {
+    "nippy_center_id": "64aed18101d27bba60dce608",
+    "limit": 100
+  }
+}
+```
+
+---
+
+### `supply_get_low_stock_alerts`
+
+Lists all items where current stock is below the configured minimum threshold.
+
+<ParamField body="limit" type="integer" default="100">
+  Maximum number of alerts to return.
+</ParamField>
+
+**Response includes:** items with `currentStock < minStockAlert`, with `productName` joined from the catalog.
+
+```json
+{
+  "name": "supply_get_low_stock_alerts",
+  "arguments": {
+    "limit": 20
+  }
+}
+```
+
+---
+
+### `supply_get_withdrawal_history`
+
+Lists the withdrawal history for this business within a date range.
+
+<ParamField body="date_from" type="string" default="''">
+  Start date in ISO 8601 format, e.g. `"2026-01-01"`. Optional.
+</ParamField>
+
+<ParamField body="date_to" type="string" default="''">
+  End date in ISO 8601 format, e.g. `"2026-05-08"`. Optional.
+</ParamField>
+
+<ParamField body="limit" type="integer" default="50">
+  Maximum number of withdrawals to return.
+</ParamField>
+
+```json
+{
+  "name": "supply_get_withdrawal_history",
+  "arguments": {
+    "date_from": "2026-05-01",
+    "date_to": "2026-05-08",
+    "limit": 100
+  }
+}
+```
+
+---
+
+### `supply_list_nippy_centers`
+
+Lists the Nippy Centers (distribution points) for the business.
+
+<ParamField body="limit" type="integer" default="100">
+  Maximum number of centers to return.
+</ParamField>
+
+**Response includes:** `_id`, `name`, `address`, `geo`, `capacity`, `schedule`, `isActive`, `type`
+
+```json
+{
+  "name": "supply_list_nippy_centers",
+  "arguments": {
+    "limit": 50
+  }
+}
+```
+
+---
+
+## Write tools — Nippy Centers
+
+### `supply_propose_nippy_center`
+
+Generates a preview of the Nippy Center before creating it. **Does not write to the database.**
+
+<ParamField body="name" type="string" required>
+  Nippy Center name.
+</ParamField>
+
+<ParamField body="address" type="string" default="''">
+  Physical address of the center.
+</ParamField>
+
+<ParamField body="lat" type="float" default="0.0">
+  Latitude for Google Maps.
+</ParamField>
+
+<ParamField body="long" type="float" default="0.0">
+  Longitude for Google Maps.
+</ParamField>
+
+<ParamField body="google_maps_link" type="string" default="''">
+  Google Maps URL. If omitted, it is generated automatically from lat/long.
+</ParamField>
+
+<ParamField body="active_member_duration" type="integer" default="30">
+  Appointment duration for active members (minutes).
+</ParamField>
+
+<ParamField body="non_member_duration" type="integer" default="15">
+  Appointment duration for non-members (minutes).
+</ParamField>
+
+<ParamField body="capacity" type="integer" default="50">
+  Maximum capacity of the center.
+</ParamField>
+
+<ParamField body="country_id" type="string" default="''">
+  Country ID. If omitted, uses the business default.
+</ParamField>
+
+<ParamField body="type" type="string" default="'physical'">
+  Center type: `"physical"` or `"online"`.
+</ParamField>
+
+<ParamField body="is_active" type="boolean" default="true">
+  Whether the center is active.
+</ParamField>
+
+```json
+{
+  "name": "supply_propose_nippy_center",
+  "arguments": {
+    "name": "Centro Norte CDMX",
+    "address": "Av. Insurgentes 123, CDMX",
+    "lat": 19.4326,
+    "long": -99.1332,
+    "capacity": 80,
+    "type": "physical"
+  }
+}
+```
+
+---
+
+### `supply_create_nippy_center`
+
+Creates the Nippy Center in the database. Same parameters as `propose_nippy_center`.
+
+<Warning>
+  Only call this tool after showing the user the `propose_nippy_center` preview and receiving explicit confirmation.
+</Warning>
+
+**Response:** `{"_id": "...", "name": "Centro Norte CDMX", "status": "created"}`
+
+---
+
+## Write tools — Global stock
+
+### `supply_propose_stock`
+
+Generates a preview of the stock product before creating it. **Does not write to the database.**
+
+<ParamField body="product_name" type="string" required>
+  Product name.
+</ParamField>
+
+<ParamField body="total_stock" type="integer" required>
+  Initial total stock quantity.
+</ParamField>
+
+<ParamField body="min_stock_alert" type="integer" required>
+  Minimum threshold for low inventory alerts.
+</ParamField>
+
+<ParamField body="type" type="string" default="''">
+  Product category, e.g. `"supply"`, `"prize"`, `"uniform"`. Optional.
+</ParamField>
+
+```json
+{
+  "name": "supply_propose_stock",
+  "arguments": {
+    "product_name": "Nippy Backpack 2026",
+    "total_stock": 500,
+    "min_stock_alert": 50,
+    "type": "prize"
+  }
+}
+```
+
+---
+
+### `supply_create_stock`
+
+Creates the product in the global catalog. Same parameters as `propose_stock`.
+
+<Warning>
+  Only call this tool after showing the user the `propose_stock` preview and receiving explicit confirmation.
+</Warning>
+
+**Response:** `{"_id": "...", "productName": "Nippy Backpack 2026", "status": "created"}`
+
+---
+
+## Write tools — Stock per Nippy Center
+
+### `supply_propose_nippy_center_stock`
+
+Generates a preview of stock assignment to a Nippy Center. **Does not write to the database.**
+
+<ParamField body="stock_id" type="string" required>
+  Product ID from the global catalog (from `list_stocks`).
+</ParamField>
+
+<ParamField body="nippy_center_id" type="string" required>
+  Nippy Center ID (from `list_nippy_centers`).
+</ParamField>
+
+<ParamField body="current_stock" type="integer" required>
+  Stock quantity to assign to the center.
+</ParamField>
+
+<ParamField body="min_stock_alert" type="integer" required>
+  Minimum threshold for alerts at this center.
+</ParamField>
+
+<ParamField body="criticality" type="string" default="''">
+  Criticality level: `"low"`, `"medium"`, `"high"`. Optional.
+</ParamField>
+
+```json
+{
+  "name": "supply_propose_nippy_center_stock",
+  "arguments": {
+    "stock_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "nippy_center_id": "64aed18101d27bba60dce608",
+    "current_stock": 100,
+    "min_stock_alert": 10,
+    "criticality": "high"
+  }
+}
+```
+
+---
+
+### `supply_create_nippy_center_stock`
+
+Assigns stock to a Nippy Center. Same parameters as `propose_nippy_center_stock`.
+
+<Warning>
+  Validates that both the stock and the center belong to the business before writing.
+</Warning>
+
+**Response:** `{"_id": "...", "status": "created"}`
+
+---
+
+## Write tools — Withdrawals
+
+### `supply_propose_withdrawal`
+
+Generates a withdrawal preview and validates stock availability. **Does not write to the database.**
+
+Verifies that:
+- The Nippy Center belongs to the business
+- The stock belongs to the business
+- There is enough stock at the center for the requested quantity
+
+<ParamField body="stock_id" type="string" required>
+  ID of the product to withdraw.
+</ParamField>
+
+<ParamField body="nippy_center_id" type="string" required>
+  ID of the Nippy Center to withdraw from.
+</ParamField>
+
+<ParamField body="worker_id" type="string" required>
+  ID of the worker receiving the withdrawal.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Worker's email.
+</ParamField>
+
+<ParamField body="quantity" type="integer" required>
+  Quantity to withdraw.
+</ParamField>
+
+<ParamField body="withdrawal_type" type="string" default="'insumos'">
+  Withdrawal type. Check `nippy://supply/schema/withdrawals` for available types.
+</ParamField>
+
+<ParamField body="entregador" type="string" default="''">
+  Delivery person name. Optional.
+</ParamField>
+
+<ParamField body="tipo_entrega" type="string" default="''">
+  Delivery type. Optional.
+</ParamField>
+
+<ParamField body="ciudad" type="string" default="''">
+  City. Optional.
+</ParamField>
+
+<ParamField body="talla" type="string" default="''">
+  Size (for uniforms or other sized items). Optional.
+</ParamField>
+
+```json
+{
+  "name": "supply_propose_withdrawal",
+  "arguments": {
+    "stock_id": "664f1a2b3c4d5e6f7a8b9c0d",
+    "nippy_center_id": "64aed18101d27bba60dce608",
+    "worker_id": "665c8d4e5f6a7b8c9d0e1f2a",
+    "email": "worker@nippy.la",
+    "quantity": 2,
+    "withdrawal_type": "insumos"
+  }
+}
+```
+
+---
+
+### `supply_approve_withdrawal`
+
+Executes the withdrawal. Decrements stock at the Nippy Center and records the delivery. Same parameters as `propose_withdrawal`.
+
+<Warning>
+  Only call this tool after showing the `propose_withdrawal` preview and receiving explicit confirmation. This operation is atomic and irreversible.
+</Warning>
+
+**Response:** `{"_id": "...", "status": "created"}`
+
+---
+
+## Full withdrawal flow
+
+```
+1. supply_list_nippy_centers          → get center IDs
+2. supply_list_stocks                 → get product IDs
+3. supply_list_nippy_center_stocks    → check available stock at the center
+4. supply_propose_withdrawal          → preview + stock availability validation
+5. [user confirms]
+6. supply_approve_withdrawal          → execute withdrawal (decrements stock + creates record)
+```
+
+<Accordion title="Technical details (advanced)">
+  Schema references for the agent:
+
+  | URI | Name | Description |
+  |-----|------|-------------|
+  | `nippy://supply/schema/stock` | `supply_stock_schema` | Global stock and per-center stock fields |
+  | `nippy://supply/schema/withdrawals` | `supply_withdrawal_schema` | Withdrawal types and flow rules |
+  | `nippy://supply/schema/centers` | `supply_nippy_center_schema` | Nippy Center fields and scheduling |
+</Accordion>

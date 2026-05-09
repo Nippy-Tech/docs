@@ -6,62 +6,72 @@ icon: "bolt"
 
 ## What it is
 
-Nippy is a WorkerTech platform operating at scale in LATAM. The same gamification engine used in production for roulettes, points, and challenges is available as a B2B product for integration into your own app.
+Nippy is a WorkerTech platform with 500K+ active users in LATAM. The same gamification engine that runs in production — roulettes, points, challenges — is now available as a B2B product for any company to integrate into their own app.
 
-**Design principle:** one engine, many shells. Your product integrates the SDK. Nippy handles rules, probabilities, inventory, prize delivery, and webhooks.
+**Design principle:** one engine, many shells. Your bank integrates the SDK, Nippy handles the full engine: rules, probabilities, inventory, prize delivery, webhooks.
 
-You own the user experience. Nippy owns the engine behavior.
+You own your UX. We handle the rest.
 
 ## Use cases
 
 <CardGroup cols={3}>
   <Card title="Transactional loyalty" icon="credit-card">
-    Reward purchases, payments, or any business event. For example, trigger a spin automatically when a purchase is greater than $500.
+    Reward purchases, payments, or any business event. Configure each purchase over $500 to trigger a spin automatically.
   </Card>
   <Card title="Gamified onboarding" icon="rocket">
-    Turn onboarding steps such as account opening, first deposit, or card activation into events that unlock mechanics.
+    Turn onboarding steps (open account, first deposit, activate card) into events that unlock mechanics.
   </Card>
   <Card title="Active retention" icon="repeat">
-    Use configurable cooldowns and spin limits to distribute engagement over time without overspending prize budget.
+    Configurable cooldowns and spin limits to distribute engagement over time without burning your prize budget.
   </Card>
 </CardGroup>
 
 ## Architecture
 
-```text
-Your app
-   |
-   | npm install @nippy/sdk
-   v
-NippyClient
-   | track() spin() getState() claim()
-   v
-ms.nippy.la/v1/public/...
-   |
-   | signed webhooks
-   v
-Your webhook endpoint
+```
+Your app (bank/fintech)
+       │
+       │  npm install @nippy/sdk
+       ▼
+   NippyClient
+   ┌─────────────────────────────────┐
+   │  track()   spin()               │
+   │  getState()  claim()            │
+   └──────────────┬──────────────────┘
+                  │  HTTPS
+                  ▼
+      ms.nippy.la/v1/public/...
+   ┌─────────────────────────────────┐
+   │  Nippy Engine                   │
+   │  • Rule evaluation              │
+   │  • Probabilities and draw       │
+   │  • Inventory management         │
+   │  • Prize reservations           │
+   └──────────────┬──────────────────┘
+                  │  Signed webhooks
+                  ▼
+      Your webhook endpoint
 ```
 
-## Activation modes
+### Two activation modes
 
-| Mode | When to use it |
-|------|----------------|
-| Automatic with `track()` | A user triggers an event and Nippy evaluates campaign rules. |
-| Direct with `spin()` | Your app decides when to spin, usually after an explicit user action. |
+| Mode | When to use |
+|------|-------------|
+| **Automatic via `track()`** | The user triggers an event (purchase, login, etc.) and the engine evaluates whether a spin is due based on campaign rules |
+| **Direct via `spin()`** | Your app decides when to spin — useful for flows where the user explicitly presses "spin" |
 
 ## What the SDK does not do
 
-- It does not render the animation. You control the UI.
-- It does not store the result. Persist it from the webhook.
-- It does not manage user identity. You pass the `userId` from your system.
+- Does not render the animation (you control the UI; the SDK returns the `seed` and `targetAngle` for you to animate)
+- Does not store the result — save it in your database via webhook
+- Does not manage user identity — you pass the `userId` you use in your system
 
 ## Requirements
 
-- Node.js 18 or later
-- An API key with the `npk_live_` prefix
-- TypeScript 4.5+ recommended
+- Node.js 18 or higher
+- A `npk_live_*` API key (provided by the Nippy team)
+- TypeScript 4.5+ (recommended; works in plain JavaScript too)
 
-<Card title="Get started" icon="rocket" href="/en/quickstart#sdk">
-  Install the SDK, initialize the client, and run your first spin.
+<Card title="Get started in 5 steps" icon="rocket" href="/en/sdk/quickstart">
+  Install the SDK, create your first campaign, and receive your first spin in under 30 minutes.
 </Card>

@@ -1,22 +1,301 @@
 ---
 title: "Roulettes"
-description: "Create and manage prize roulettes through MCP"
+description: "Gamification: create and manage roulettes for physical and digital prizes"
 icon: "ticket"
 ---
 
-Roulette tools let an agent create, inspect, and manage gamification campaigns.
+## Examples of what you can ask your agent
 
-## What you can do
+- "Create a welcome roulette: 70% keep participating, 20% 10% discount, 10% Bluetooth headphones"
+- "What active roulettes do I have right now?"
+- "Add a physical prize: 50 Nippy backpacks to use in roulettes"
+- "Show me the full configuration of the May roulette"
+- "What prize items do I have available with stock?"
 
-- List active roulettes.
-- Create a roulette with prize probabilities.
-- Review campaign status and inventory.
-- Ask for performance summaries before changing a campaign.
+With Roulettes you build gamification campaigns without touching the console. Tell your agent what prizes you want, with what probability, and it configures everything. Before anything is created, you get a preview to review — nothing is saved until you confirm.
 
-## Example prompt
+<Note>
+  Always call `list_roulette_items` before proposing a roulette, to know which physical items are available with stock.
+</Note>
 
-```text
-Create a welcome roulette with three prizes:
-500 points, a 10% discount, and keep participating.
-Set the probabilities to 40%, 30%, and 30%.
+---
+
+## Read tools
+
+### `roulettes_list_roulette_items`
+
+Lists the physical prize items available for this business. Call this **first** before proposing any roulette.
+
+**No parameters.**
+
+**Response:** each item includes `_id`, `name`, `available_stock`, and whether it's `enabled_in_rewards`.
+
+Only items with `available_stock > 0` and `enabled_in_rewards = true` should be used as physical prizes in a roulette.
+
+```json
+{
+  "name": "roulettes_list_roulette_items",
+  "arguments": {}
+}
 ```
+
+---
+
+### `roulettes_get_roulette`
+
+Gets the full configuration of a roulette by its `_id`.
+
+<ParamField body="roulette_id" type="string" required>
+  Roulette ID to query.
+</ParamField>
+
+**Response:** full document including `gifts` (with probabilities, `typeOfGift`, `item_id`), `typeOfRoulette`, timers, terms, `isActive`, and counters (`totalSpins`).
+
+```json
+{
+  "name": "roulettes_get_roulette",
+  "arguments": {
+    "roulette_id": "664f1a2b3c4d5e6f7a8b9c0d"
+  }
+}
+```
+
+---
+
+### `roulettes_list_roulettes`
+
+Lists the existing roulettes for this business.
+
+**No parameters.**
+
+**Response includes:** `_id`, `name`, `isActive`, `typeOfRoulette`, counters (`totalSpins`), `createdAt`.
+
+```json
+{
+  "name": "roulettes_list_roulettes",
+  "arguments": {}
+}
+```
+
+---
+
+## Write tools — Items
+
+### `roulettes_propose_item`
+
+Generates a preview of a physical prize item. **Does not write to the database.**
+
+The `country` is inherited automatically from the business.
+
+<ParamField body="name" type="string" required>
+  Item name.
+</ParamField>
+
+<ParamField body="available_stock" type="integer" required>
+  Available stock quantity for prizes.
+</ParamField>
+
+<ParamField body="description" type="string" default="''">
+  Item description.
+</ParamField>
+
+<ParamField body="currency" type="string" default="'MXN'">
+  Currency (ISO 4217 code).
+</ParamField>
+
+<ParamField body="track_stock" type="boolean" default="true">
+  Whether to track inventory for this item.
+</ParamField>
+
+<ParamField body="enabled_in_rewards" type="boolean" default="true">
+  Whether the item is enabled for use as a prize in roulettes.
+</ParamField>
+
+```json
+{
+  "name": "roulettes_propose_item",
+  "arguments": {
+    "name": "Bluetooth Headphones",
+    "available_stock": 50,
+    "description": "Nippy-branded wireless headphones",
+    "currency": "MXN",
+    "track_stock": true,
+    "enabled_in_rewards": true
+  }
+}
+```
+
+---
+
+### `roulettes_create_item`
+
+Creates a new physical prize item. Same parameters as `propose_item`.
+
+<Warning>
+  Only call this tool after showing the user the `propose_item` preview and receiving explicit confirmation.
+</Warning>
+
+**Response:** `{"_id": "...", "name": "Bluetooth Headphones", "status": "created"}`
+
+---
+
+## Write tools — Roulettes
+
+### `roulettes_propose_roulette`
+
+Generates a preview of a roulette configuration. **Does not write to the database.**
+
+<ParamField body="name" type="string" required>
+  Roulette name.
+</ParamField>
+
+<ParamField body="gifts" type="array" required>
+  List of prize objects. Each gift must contain:
+
+  - `value` (string, required): name shown on the wheel
+  - `message` (string, required): message shown when won
+  - `probability` (float, required): relative weight (e.g. `80` = 80% relative weight among all gifts)
+  - `typeOfGift` (object, required): `{"name": "...", "_id": "..."}` — prize type. The agent automatically looks up the available type catalog.
+  - `emoji` (string, optional): decorative emoji
+  - `quantity` (int, optional): available units. Required for physical prizes
+  - `item_id` (string, optional): `_id` from `list_roulette_items` — only for physical prizes. Do not confuse with `typeOfGift._id`
+  - `guaranteedForFirstTimers` (bool, optional)
+  - `winInterval` (int, optional)
+  - `fallback` (string, optional)
+</ParamField>
+
+<ParamField body="time_to_win" type="integer" required>
+  Win animation time (seconds).
+</ParamField>
+
+<ParamField body="time_to_lose" type="integer" required>
+  Lose animation time (seconds).
+</ParamField>
+
+<ParamField body="text_to_win" type="string" required>
+  Text shown when the user wins.
+</ParamField>
+
+<ParamField body="text_to_lose" type="string" required>
+  Text shown when the user loses.
+</ParamField>
+
+<ParamField body="terms_and_conditions" type="string" required>
+  Roulette terms and conditions.
+</ParamField>
+
+<ParamField body="roulette_type_id" type="integer" required>
+  Numeric ID of the roulette type. Check `nippy://roulettes/schema/gifts` for valid options.
+</ParamField>
+
+<ParamField body="roulette_type_name" type="string" required>
+  Roulette type name (e.g. `"standard"`, `"premium"`).
+</ParamField>
+
+<ParamField body="is_active" type="boolean" default="false">
+  Whether the roulette is activated immediately. Recommended: `false` until the user confirms.
+</ParamField>
+
+<ParamField body="time_unit" type="string" default="'hours'">
+  Time unit for expiration: `"hours"`, `"days"`. Only applies if `roulette_type_id` supports it.
+</ParamField>
+
+<ParamField body="time_to_expire" type="integer" default="24">
+  Time until the roulette expires, in `time_unit` units.
+</ParamField>
+
+<ParamField body="max_wins" type="integer" default="1">
+  Maximum number of prizes a user can win in this roulette.
+</ParamField>
+
+```json
+{
+  "name": "roulettes_propose_roulette",
+  "arguments": {
+    "name": "Welcome Roulette May 2026",
+    "gifts": [
+      {
+        "value": "Bluetooth Headphones",
+        "message": "You won Nippy Bluetooth Headphones!",
+        "probability": 10,
+        "typeOfGift": {
+          "name": "Fisico",
+          "_id": "634f356e33e5c76785516a2d"
+        },
+        "emoji": "🎧",
+        "quantity": 50,
+        "item_id": "664f1a2b3c4d5e6f7a8b9c0d"
+      },
+      {
+        "value": "10% discount",
+        "message": "You got 10% off your next purchase!",
+        "probability": 30,
+        "typeOfGift": {
+          "name": "Porcentaje",
+          "_id": "6342f530705c91dcbe8aba8b"
+        },
+        "emoji": "💰"
+      },
+      {
+        "value": "Keep trying",
+        "message": "You didn't win this time. Try again!",
+        "probability": 60,
+        "typeOfGift": {
+          "name": "Perder",
+          "_id": "634f356e33e5c76785516a2c"
+        },
+        "emoji": "😔"
+      }
+    ],
+    "time_to_win": 5,
+    "time_to_lose": 3,
+    "text_to_win": "Congratulations!",
+    "text_to_lose": "Keep trying",
+    "terms_and_conditions": "Promotion valid from May 1 to May 31, 2026. Restrictions apply.",
+    "roulette_type_id": 1,
+    "roulette_type_name": "standard",
+    "is_active": false,
+    "time_to_expire": 24,
+    "max_wins": 1
+  }
+}
+```
+
+---
+
+### `roulettes_create_roulette`
+
+Creates a new roulette for this business. Same parameters as `propose_roulette`.
+
+<Warning>
+  Only call this tool after showing the user the `propose_roulette` preview and receiving explicit confirmation.
+</Warning>
+
+**Response:** `{"_id": "...", "name": "Welcome Roulette May 2026", "status": "created"}`
+
+---
+
+<Accordion title="Technical details (advanced)">
+  Schema references for the agent:
+
+  | URI | Name | Description |
+  |-----|------|-------------|
+  | `nippy://roulettes/schema/gifts` | `roulettes_gift_types` | `typeOfGift` value catalog and `typeOfRoulette` options |
+  | `nippy://roulettes/schema/fields` | `roulettes_field_reference` | Roulette and item document fields |
+
+  **`typeOfGift` catalog IDs:**
+
+  | Type | `_id` |
+  |------|-------|
+  | Porcentaje (Percentage) | `6342f530705c91dcbe8aba8b` |
+  | Perder (Lose) | `634f356e33e5c76785516a2c` |
+  | Points | `68b86722b5a6eee84f241985` |
+</Accordion>
+
+## Important notes
+
+- `typeOfGift._id` values must come from the official catalog — do not invent IDs.
+- The `item_id` for a physical prize goes in the gift's `item_id` field, **not** in `typeOfGift._id`.
+- Always include at least one "Perder" (Lose) slot.
+- The `country` for items and roulettes is inherited automatically from the business.
+- Keep `is_active: false` until the user explicitly asks to activate the roulette.

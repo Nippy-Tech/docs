@@ -1,39 +1,175 @@
 ---
 title: "Campaigns"
-description: "Create campaigns, configure prizes, and define activation rules"
+description: "Create campaigns, configure prizes, and define automatic activation rules"
 icon: "flag"
 ---
 
-Campaigns define who can spin, which prizes are available, and which rules trigger mechanics.
+Campaigns are the central container for all mechanics. You define the available prizes, their probabilities, user limits, and when they activate.
 
-## Core concepts
+## Create a campaign
 
-- **Prizes:** points, digital rewards, physical rewards, or losing outcomes.
-- **Probabilities:** prize weights used by the draw engine.
-- **Cooldowns:** time windows that prevent repeated spins.
-- **Spin limits:** maximum spins per user or campaign.
-- **Rules:** business events that can trigger mechanics through `track()`.
-
-## Create a test campaign
-
-```bash
-curl -X POST https://ms.nippy.la/v1/public/campaigns \
-  -H "x-api-key: npk_live_xxx" \
-  -H "x-business-id: your-business-id" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Test campaign",
-    "webhookUrl": "https://your-app.com/webhooks/nippy",
-    "webhookSecret": "secure-secret",
-    "spinsAllowed": 3,
-    "cooldownMinutes": 0,
-    "gifts": [
-      { "name": "500 points", "type": "won_points", "pointsValue": 500, "probability": 70 },
-      { "name": "Lose", "type": "lost", "probability": 30 }
-    ]
-  }'
+```http
+POST https://ms.nippy.la/v1/public/campaigns
+x-api-key: npk_live_xxx
+x-business-id: your-business-id
+Content-Type: application/json
 ```
 
-<Warning>
-  Prize probabilities must add up to 100.
-</Warning>
+```json
+{
+  "name": "Summer 2026 Campaign",
+  "webhookUrl": "https://your-app.com/webhooks/nippy",
+  "webhookSecret": "a-secure-secret-min-16-chars",
+  "spinsAllowed": 3,
+  "cooldownMinutes": 60,
+  "gifts": [
+    {
+      "name": "500 points",
+      "type": "won_points",
+      "pointsValue": 500,
+      "probability": 60
+    },
+    {
+      "name": "100 points",
+      "type": "won_points",
+      "pointsValue": 100,
+      "probability": 30
+    },
+    {
+      "name": "Lose",
+      "type": "lost",
+      "probability": 10
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "campaignId": "camp-abc123",
+  "businessId": "your-business-id",
+  "name": "Summer 2026 Campaign",
+  "status": "active",
+  "createdAt": "2026-05-01T00:00:00.000Z"
+}
+```
+
+### Parameters
+
+<ParamField body="name" type="string" required>
+  Internal campaign name. Only visible in your console.
+</ParamField>
+
+<ParamField body="webhookUrl" type="string" required>
+  Your backend URL where Nippy will send events. Must be HTTPS.
+</ParamField>
+
+<ParamField body="webhookSecret" type="string" required>
+  Secret for verifying the HMAC-SHA256 webhook signature. Minimum 16 characters.
+</ParamField>
+
+<ParamField body="spinsAllowed" type="number" required>
+  Maximum spins per user. Use `-1` for unlimited.
+</ParamField>
+
+<ParamField body="cooldownMinutes" type="number" required>
+  Wait time between spins for the same user. Use `0` for no cooldown.
+</ParamField>
+
+<ParamField body="gifts" type="array" required>
+  List of available prizes. Probabilities must add up to exactly 100.
+</ParamField>
+
+## Prize types
+
+| Type | Description | Additional fields |
+|------|-------------|-------------------|
+| `won_points` | Credits points to the user | `pointsValue` (required) |
+| `lost` | No prize — needed so probabilities sum to 100 | — |
+| `won_digital` | Digital prize (code, voucher, etc.) | Descriptive `name` |
+| `won_physical` | Physical prize with tracked inventory | Descriptive `name` |
+
+<Note>
+  The probabilities of all gifts in a campaign must add up to exactly **100**. If they don't, creation fails with a validation error.
+</Note>
+
+## Create activation rules
+
+Rules define which business event triggers a mechanic automatically. When the bank calls `nippy.track()`, the engine evaluates the campaign's rules and executes the action if the condition is met.
+
+```http
+POST https://ms.nippy.la/v1/public/campaigns/:campaignId/rules
+x-api-key: npk_live_xxx
+x-business-id: your-business-id
+Content-Type: application/json
+```
+
+### Rule: unlock spin for purchases over \$100
+
+```json
+{
+  "eventType": "card.purchase.completed",
+  "condition": {
+    "field": "value",
+    "operator": "gt",
+    "value": 100
+  },
+  "action": "unlock_spin"
+}
+```
+
+### Rule: grant points for purchases over \$500
+
+```json
+{
+  "eventType": "card.purchase.completed",
+  "condition": {
+    "field": "value",
+    "operator": "gte",
+    "value": 500
+  },
+  "action": "grant_points",
+  "pointsValue": 200
+}
+```
+
+### Available condition operators
+
+| Operator | Meaning |
+|----------|---------|
+| `gt` | Greater than |
+| `gte` | Greater than or equal to |
+| `lt` | Less than |
+| `lte` | Less than or equal to |
+| `eq` | Equal to |
+
+### Available actions
+
+| Action | Description |
+|--------|-------------|
+| `unlock_spin` | Triggers an automatic spin for the user. The result arrives via the `spin.completed` webhook. |
+| `grant_points` | Credits points directly without spinning. Requires the `pointsValue` field. |
+
+## List campaigns
+
+```http
+GET https://ms.nippy.la/v1/public/campaigns
+x-api-key: npk_live_xxx
+x-business-id: your-business-id
+```
+
+```json
+[
+  {
+    "campaignId": "camp-abc123",
+    "name": "Summer 2026 Campaign",
+    "status": "active",
+    "totalSpins": 1420,
+    "totalWins": 987,
+    "startsAt": null,
+    "endsAt": null
+  }
+]
+```

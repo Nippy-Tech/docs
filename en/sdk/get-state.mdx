@@ -55,5 +55,17 @@ curl "https://ms.nippy.la/v1/public/state?userId=user-123&campaignId=camp-abc" \
 </ResponseField>
 
 <ResponseField name="pendingClaim" type="object | null">
-  Pending prize claim, if one exists.
+  Pending prize to claim, if one exists.
+</ResponseField>
+
+<ResponseField name="pendingClaim.spinId" type="string">
+  Spin ID associated with the pending claim.
+</ResponseField>
+
+<ResponseField name="pendingClaim.gift" type="object">
+  Pending prize to claim.
+</ResponseField>
+
+<ResponseField name="pendingClaim.expiresAt" type="string">
+  Deadline to claim the prize.
 </ResponseField>
