@@ -32,49 +32,91 @@
         "tab": "Docs",
         "groups": [
           {
-            "group": " ",
+            "group": "Start here",
+            "icon": "house",
             "pages": [
-              "index"
+              "index",
+              "sdk/quickstart",
+              "mcp/quickstart"
             ]
           },
           {
-            "group": "SDK de Gamificación",
+            "group": "SDK",
+            "icon": "code",
             "pages": [
               "sdk/introduction",
-              "sdk/quickstart",
               "sdk/authentication",
               "sdk/campaigns",
-              "sdk/track",
-              "sdk/spin",
-              "sdk/get-state",
-              "sdk/claim",
-              "sdk/webhooks",
-              "sdk/errors",
-              "sdk/webhook-log"
+              {
+                "group": "Methods",
+                "expanded": true,
+                "pages": [
+                  "sdk/track",
+                  "sdk/spin",
+                  "sdk/get-state",
+                  "sdk/claim"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "expanded": false,
+                "pages": [
+                  "sdk/webhooks",
+                  "sdk/webhook-log"
+                ]
+              },
+              {
+                "group": "Errors",
+                "expanded": false,
+                "pages": [
+                  "sdk/errors"
+                ]
+              }
             ]
           },
           {
             "group": "MCP",
+            "icon": "plug",
             "pages": [
               "mcp/introduction",
-              "mcp/quickstart",
               "mcp/authentication",
-              "mcp/analytics",
-              "mcp/supply",
-              "mcp/roulettes",
-              "mcp/flows",
-              "mcp/learning"
+              {
+                "group": "Tools",
+                "expanded": true,
+                "pages": [
+                  "mcp/analytics",
+                  "mcp/roulettes",
+                  "mcp/flows",
+                  "mcp/learning",
+                  "mcp/supply"
+                ]
+              },
+              {
+                "group": "Troubleshooting",
+                "expanded": false,
+                "pages": [
+                  "errors"
+                ]
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "Reference",
         "groups": [
           {
-            "group": "Referencia",
+            "group": "API Reference",
+            "icon": "book-open",
             "pages": [
               "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Resources",
+            "icon": "clock",
+            "pages": [
+              "changelog"
             ]
           }
         ]
