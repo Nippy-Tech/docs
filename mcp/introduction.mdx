@@ -1,0 +1,64 @@
+---
+mode: "wide"
+title: "MCP — Introducción"
+description: "Conecta un agente de IA al engine de Nippy y opera tu plataforma en lenguaje natural"
+icon: "brain"
+---
+
+## Qué es el MCP de Nippy
+
+El MCP (Model Context Protocol) de Nippy expone todo el engine operativo de la plataforma como herramientas que cualquier agente de IA puede invocar. En lugar de abrir la consola, navegar menús y exportar reportes, le preguntas directamente:
+
+- *"¿Cuántas campañas activas tenemos esta semana y cuál tiene mejor conversión?"*
+- *"Crea una ruleta para la campaña de verano con 500 puntos como premio principal"*
+- *"¿Qué productos están por debajo del stock mínimo en el centro de Monterrey?"*
+
+El agente ejecuta las operaciones, trae los datos y actúa — todo en segundos.
+
+## Cómo encaja con el SDK
+
+El SDK y el MCP acceden al mismo engine. Son dos perspectivas del mismo sistema:
+
+| | SDK | MCP |
+|--|-----|-----|
+| **Quién lo usa** | El usuario final (en tu app) | Tu equipo o agente de IA |
+| **Cómo se accede** | npm package embedido en tu app | Cliente MCP: Claude, Cursor, OpenClaw, Hermes |
+| **Qué hace** | El usuario gira, gana, reclama | El agente crea campañas, analiza, gestiona |
+| **Tiempo real** | Sí — cada spin es síncrono | Sí — las operaciones ocurren al instante |
+
+Un banco puede usar ambos simultáneamente: el SDK corre en la app del cliente, el MCP corre en el workspace del equipo de marketing.
+
+## Verticales disponibles
+
+El MCP de Nippy expone seis áreas operativas. Cada vertical tiene sus propias herramientas que el agente descubre automáticamente al conectarse.
+
+<CardGroup cols={2}>
+  <Card title="Analytics" icon="chart-bar" href="/mcp/analytics">
+    Consulta datos de ruletas, supply, cursos y asistencia. Tu agente construye la consulta y devuelve los resultados — sin SQL, sin Excel.
+  </Card>
+  <Card title="Supply" icon="boxes-stacking" href="/mcp/supply">
+    Niveles de stock por centro, retiros, alertas de inventario bajo. Crear y actualizar desde el chat.
+  </Card>
+  <Card title="Roulettes" icon="ticket" href="/mcp/roulettes">
+    Crear y gestionar campañas de gamificación desde el agente. Flujo completo: propuesta, validación de inventario, publicación.
+  </Card>
+  <Card title="Flows" icon="route" href="/mcp/flows">
+    Landing pages de registro para campañas. Configura campos, redirects y revisa conversión en tiempo real.
+  </Card>
+  <Card title="Learning" icon="graduation-cap" href="/mcp/learning">
+    Cursos, inscripciones, exámenes y certificados. Crear y actualizar sin abrir la plataforma.
+  </Card>
+</CardGroup>
+
+## Clientes compatibles
+
+El servidor usa **MCP sobre HTTP streamable** (JSON-RPC 2.0). Funciona con cualquier cliente que implemente el protocolo:
+
+- **Claude Desktop** — integración nativa, tools aparecen en el chat
+- **Cursor** — agente con acceso directo al engine desde el editor
+- **OpenClaw** — runtime local MCP-compatible
+- **Hermes Agent** (NousResearch) — agente open source con cliente MCP nativo
+
+<Card title="Conectar en 3 pasos" icon="rocket" href="/mcp/quickstart" horizontal>
+  API key → configurar cliente → primera operación. Listo en minutos.
+</Card>

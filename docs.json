@@ -29,67 +29,36 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guías",
+        "tab": "Docs",
         "groups": [
           {
-            "group": "Inicio",
+            "group": " ",
             "pages": [
-              "index",
-              "quickstart"
+              "index"
             ]
           },
           {
-            "group": "Autenticación",
-            "pages": [
-              "authentication"
-            ]
-          },
-          {
-            "group": "Soporte",
-            "pages": [
-              "errors",
-              "changelog"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "SDK",
-        "groups": [
-          {
-            "group": "Overview",
+            "group": "SDK de Gamificación",
             "pages": [
               "sdk/introduction",
               "sdk/quickstart",
               "sdk/authentication",
-              "sdk/campaigns"
-            ]
-          },
-          {
-            "group": "SDK Reference",
-            "pages": [
+              "sdk/campaigns",
               "sdk/track",
               "sdk/spin",
               "sdk/get-state",
-              "sdk/claim"
-            ]
-          },
-          {
-            "group": "Integraciones",
-            "pages": [
+              "sdk/claim",
               "sdk/webhooks",
               "sdk/errors",
               "sdk/webhook-log"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "MCP Tools",
-        "groups": [
+          },
           {
-            "group": "Verticales",
+            "group": "MCP",
             "pages": [
+              "mcp/introduction",
+              "mcp/quickstart",
+              "mcp/authentication",
               "mcp/analytics",
               "mcp/supply",
               "mcp/roulettes",
@@ -103,7 +72,7 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API HTTP",
+            "group": "Referencia",
             "pages": [
               "api-reference/introduction"
             ]

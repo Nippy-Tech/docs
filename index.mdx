@@ -1,62 +1,86 @@
 ---
 mode: "wide"
 title: "Nippy API Platform"
-description: "Conecta tu IA a tu negocio. Opera en lenguaje natural."
+description: "El engine de gamificación e inteligencia operativa que ya opera a escala en LATAM."
 ---
 
-<div style={{marginBottom: "48px", paddingTop: "8px"}}>
-  <p style={{fontSize: "12px", fontWeight: "500", color: "#4D9EFF", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: "20px", fontFamily: "DM Mono, monospace"}}>Documentación · MCP</p>
-  <h1 style={{fontSize: "clamp(32px, 4vw, 52px)", fontWeight: "800", lineHeight: "1.0", letterSpacing: "-0.045em", marginBottom: "20px"}}>Tu negocio,<br/>en lenguaje natural.</h1>
-  <p style={{fontSize: "17px", lineHeight: "1.65", maxWidth: "500px", marginBottom: "32px", opacity: "0.65"}}>
-    Conecta Claude, Cursor u otro cliente MCP y pregúntale directamente a tus datos. Sin dashboards, sin reportes, sin esperas.
+<div style={{paddingTop: "8px", marginBottom: "64px"}}>
+  <p style={{fontSize: "11px", fontWeight: "600", color: "#4D9EFF", letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: "24px", fontFamily: "DM Mono, monospace"}}>Engine · API Platform</p>
+
+  <h1 style={{fontSize: "clamp(36px, 5vw, 60px)", fontWeight: "800", lineHeight: "1.0", letterSpacing: "-0.05em", marginBottom: "24px", maxWidth: "680px"}}>
+    El engine que mueve la economía de trabajadores en LATAM.<br/>Ahora en tu producto.
+  </h1>
+
+  <p style={{fontSize: "18px", lineHeight: "1.7", maxWidth: "560px", marginBottom: "40px", opacity: "0.6"}}>
+    Nippy opera en producción con 700K+ trabajadores en 5 países. SDK o MCP: dos formas de integrarlo. Un solo engine detrás.
   </p>
+
   <div style={{display: "flex", gap: "12px", flexWrap: "wrap"}}>
-    <a href="/quickstart" style={{display: "inline-flex", alignItems: "center", gap: "8px", background: "#4D9EFF", color: "#080D14", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", fontSize: "14px", textDecoration: "none"}}>Conectar ahora →</a>
-    <a href="/mcp/analytics" style={{display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(77,158,255,0.1)", color: "#4D9EFF", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", fontSize: "14px", textDecoration: "none", border: "1px solid rgba(77,158,255,0.25)"}}>Ver herramientas</a>
+    <a href="/sdk/quickstart" style={{display: "inline-flex", alignItems: "center", gap: "8px", background: "#4D9EFF", color: "#080D14", padding: "11px 22px", borderRadius: "8px", fontWeight: "700", fontSize: "14px", textDecoration: "none", letterSpacing: "-0.01em"}}>SDK — Primer spin →</a>
+    <a href="/mcp/quickstart" style={{display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(77,158,255,0.08)", color: "#4D9EFF", padding: "11px 22px", borderRadius: "8px", fontWeight: "700", fontSize: "14px", textDecoration: "none", border: "1px solid rgba(77,158,255,0.2)", letterSpacing: "-0.01em"}}>MCP — Conectar agente →</a>
   </div>
 </div>
 
+<div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px", marginBottom: "64px", background: "rgba(255,255,255,0.06)", borderRadius: "16px", overflow: "hidden"}}>
+  <div style={{padding: "40px", background: "rgba(8,13,20,0.95)"}}>
+    <p style={{fontSize: "11px", fontWeight: "600", color: "#4ADE80", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: "16px", fontFamily: "DM Mono, monospace"}}>Gamification SDK</p>
+    <h2 style={{fontSize: "26px", fontWeight: "800", lineHeight: "1.1", letterSpacing: "-0.03em", marginBottom: "16px"}}>Tu app,<br/>con el engine adentro.</h2>
+    <p style={{fontSize: "15px", lineHeight: "1.65", opacity: "0.55", marginBottom: "28px"}}>
+      Instala el SDK, embebe la ruleta en tu interfaz y deja que Nippy maneje el resto: probabilidades, inventario, cooldowns, webhooks firmados. Tu equipo diseña la experiencia. El nuestro la opera.
+    </p>
+    <div style={{fontSize: "13px", color: "rgba(240,246,255,0.4)", fontFamily: "DM Mono, monospace", marginBottom: "28px", lineHeight: "1.8"}}>
+      <div>npm install github:Nippy-Tech/gamification_nippy_sdk</div>
+    </div>
+    <a href="/sdk/introduction" style={{display: "inline-flex", alignItems: "center", gap: "6px", color: "#4ADE80", fontWeight: "600", fontSize: "14px", textDecoration: "none"}}>Ver documentación →</a>
+  </div>
+
+  <div style={{padding: "40px", background: "rgba(8,13,20,0.95)"}}>
+    <p style={{fontSize: "11px", fontWeight: "600", color: "#4D9EFF", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: "16px", fontFamily: "DM Mono, monospace"}}>MCP</p>
+    <h2 style={{fontSize: "26px", fontWeight: "800", lineHeight: "1.1", letterSpacing: "-0.03em", marginBottom: "16px"}}>Tu IA,<br/>con acceso al engine.</h2>
+    <p style={{fontSize: "15px", lineHeight: "1.65", opacity: "0.55", marginBottom: "28px"}}>
+      Conecta Claude, Cursor u otro cliente MCP. Tu equipo crea campañas, analiza resultados y gestiona premios en lenguaje natural — sin abrir la consola, sin esperar un reporte, sin escribir una query.
+    </p>
+    <div style={{fontSize: "13px", color: "rgba(240,246,255,0.4)", fontFamily: "DM Mono, monospace", marginBottom: "28px", lineHeight: "1.8"}}>
+      <div>ms.nippy.la/cognitive-layer/mcp</div>
+    </div>
+    <a href="/mcp/introduction" style={{display: "inline-flex", alignItems: "center", gap: "6px", color: "#4D9EFF", fontWeight: "600", fontSize: "14px", textDecoration: "none"}}>Ver documentación →</a>
+  </div>
+</div>
+
+<div style={{display: "flex", gap: "48px", paddingTop: "8px", paddingBottom: "48px", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)", marginBottom: "64px", flexWrap: "wrap"}}>
+  <div>
+    <div style={{fontSize: "28px", fontWeight: "800", letterSpacing: "-0.04em", color: "#4D9EFF"}}>700K+</div>
+    <div style={{fontSize: "13px", opacity: "0.45", marginTop: "4px"}}>trabajadores activos</div>
+  </div>
+  <div>
+    <div style={{fontSize: "28px", fontWeight: "800", letterSpacing: "-0.04em"}}>5</div>
+    <div style={{fontSize: "13px", opacity: "0.45", marginTop: "4px"}}>países en LATAM</div>
+  </div>
+  <div>
+    <div style={{fontSize: "28px", fontWeight: "800", letterSpacing: "-0.04em"}}>30M</div>
+    <div style={{fontSize: "13px", opacity: "0.45", marginTop: "4px"}}>data points procesados</div>
+  </div>
+  <div>
+    <div style={{fontSize: "28px", fontWeight: "800", letterSpacing: "-0.04em"}}>7M+</div>
+    <div style={{fontSize: "13px", opacity: "0.45", marginTop: "4px"}}>transacciones</div>
+  </div>
+</div>
+
+<div style={{marginBottom: "16px"}}>
+  <p style={{fontSize: "11px", fontWeight: "600", color: "rgba(240,246,255,0.3)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: "20px", fontFamily: "DM Mono, monospace"}}>¿Por dónde empiezo?</p>
+</div>
+
 <CardGroup cols={2}>
-  <Card
-    title="Analytics"
-    icon="chart-bar"
-    href="/mcp/analytics"
-  >
-    Pregunta sobre tus datos en español. Tu agente construye la consulta y te entrega los resultados.
+  <Card title="SDK — Quickstart" icon="rocket" href="/sdk/quickstart">
+    Instala el SDK, crea tu primera campaña y ejecuta tu primer spin en menos de 30 minutos.
   </Card>
-  <Card
-    title="Supply"
-    icon="boxes-stacking"
-    href="/mcp/supply"
-  >
-    Stock por centro, retiros, alertas de inventario bajo y creación de centros de distribución.
+  <Card title="MCP — Quickstart" icon="brain" href="/mcp/quickstart">
+    Conecta Claude Desktop, Cursor u OpenClaw al engine de Nippy en 3 pasos.
   </Card>
-  <Card
-    title="Roulettes"
-    icon="ticket"
-    href="/mcp/roulettes"
-  >
-    Crea y gestiona ruletas de premios. Desde propuesta hasta publicación, con validación de stock.
+  <Card title="Campañas" icon="flag" href="/sdk/campaigns">
+    Cómo configurar premios, probabilidades, cooldowns y reglas de activación automática.
   </Card>
-  <Card
-    title="Flows"
-    icon="route"
-    href="/mcp/flows"
-  >
-    Landing pages de registro para campañas. Configura campos, redirects y métricas de conversión.
-  </Card>
-  <Card
-    title="Learning"
-    icon="graduation-cap"
-    href="/mcp/learning"
-  >
-    Cursos, inscripciones, exámenes y certificados. Crea y actualiza sin abrir la plataforma.
-  </Card>
-  <Card
-    title="Quickstart"
-    icon="rocket"
-    href="/quickstart"
-  >
-    Claude Desktop, Cursor, OpenClaw o Hermes Agent. Conectado en minutos.
+  <Card title="Webhooks" icon="webhook" href="/sdk/webhooks">
+    Verifica firmas, procesa eventos y construye tu pipeline de recompensas.
   </Card>
 </CardGroup>
