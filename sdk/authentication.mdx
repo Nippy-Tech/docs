@@ -1,0 +1,77 @@
+---
+mode: "wide"
+title: "Autenticación"
+description: "API keys y cómo usarlas en el SDK y en llamadas directas"
+icon: "key"
+---
+
+## Formato de la API key
+
+Todas las keys de Nippy tienen el prefijo `npk_live_` seguido de un string aleatorio:
+
+```
+npk_live_a1b2c3d4e5f6...
+```
+
+Cada key está ligada a un `businessId` específico. El servidor resuelve tu negocio automáticamente a partir de la key — no necesitas pasarlo en los métodos del SDK, pero sí en las llamadas directas a la API REST.
+
+<Warning>
+  Nunca expongas tu key en código del lado del cliente (browser, app móvil). Úsala solo en tu backend.
+</Warning>
+
+## En el SDK
+
+Pásala en el constructor una vez:
+
+```typescript
+import { NippyClient } from '@nippy/sdk'
+
+const nippy = new NippyClient({
+  apiKey: process.env.NIPPY_API_KEY,  // nunca hardcodeada
+  baseUrl: 'https://ms.nippy.la'
+})
+```
+
+El SDK la incluye automáticamente en cada request. No necesitas manejarla manualmente.
+
+## En llamadas directas a la API REST
+
+Para endpoints de administración (crear campañas, reglas, ver logs) que no pasan por el SDK, incluye dos headers:
+
+```http
+x-api-key: npk_live_xxx
+x-business-id: tu-business-id
+```
+
+Ejemplo:
+
+```bash
+curl https://ms.nippy.la/v1/public/campaigns \
+  -H "x-api-key: npk_live_xxx" \
+  -H "x-business-id: tu-business-id"
+```
+
+## Errores de autenticación
+
+| Código HTTP | Causa | Solución |
+|-------------|-------|----------|
+| `401 Unauthorized` | Key inválida, expirada o faltante | Verifica que la key sea correcta y esté en el header `x-api-key` |
+| `403 Forbidden` | La key no tiene acceso al recurso solicitado | Verifica que el `businessId` corresponda a tu key |
+
+```typescript
+import { NippyError, NippyErrorCodes } from '@nippy/sdk'
+
+try {
+  await nippy.spin({ userId, campaignId })
+} catch (error) {
+  if (error instanceof NippyError && error.code === NippyErrorCodes.UNAUTHORIZED) {
+    // verificar que la API key sea válida
+  }
+}
+```
+
+## Buenas prácticas
+
+- Guarda la key en variables de entorno (`NIPPY_API_KEY`)
+- Rota la key si sospechas que fue comprometida — escríbenos a soporte@nippy.la
+- Usa una sola instancia de `NippyClient` por proceso; no la recrees por request

@@ -1,0 +1,111 @@
+---
+mode: "wide"
+title: "Manejo de errores"
+description: "NippyErrorCodes, reintentos automáticos y cómo responder a cada caso"
+icon: "triangle-exclamation"
+---
+
+El SDK lanza instancias de `NippyError` para errores operacionales predecibles. Importa `NippyError` y `NippyErrorCodes` para manejarlos con tipado.
+
+## Patrón base
+
+```typescript
+import { NippyError, NippyErrorCodes } from '@nippy/sdk'
+
+try {
+  await nippy.spin({ userId, campaignId })
+} catch (error) {
+  if (error instanceof NippyError) {
+    // error de Nippy — tiene código y mensaje
+    console.error(error.code, error.message)
+  } else {
+    // error inesperado — re-throw
+    throw error
+  }
+}
+```
+
+## Códigos de error
+
+### Errores de elegibilidad (4xx — no se reintentan)
+
+| Código | HTTP | Cuándo ocurre | Qué mostrar al usuario |
+|--------|------|---------------|----------------------|
+| `COOLDOWN_ACTIVE` | 409 | El usuario giró recientemente y su cooldown sigue activo | "Puedes girar de nuevo en X minutos" — usa `getState()` para el tiempo exacto |
+| `SPIN_LIMIT_REACHED` | 409 | El usuario agotó sus spins permitidos en la campaña | "Ya usaste todos tus giros" |
+| `CAMPAIGN_NOT_FOUND` | 404 | El `campaignId` no existe o la campaña está inactiva | "Esta campaña no está disponible" |
+| `ALREADY_CLAIMED` | 409 | Se llamó `claim()` para un premio que ya fue reclamado | Ignorar — mostrar el estado actual |
+| `RESERVATION_EXPIRED` | 410 | El usuario no reclamó antes de que expirara la reserva | "El tiempo para reclamar tu premio expiró" |
+| `UNAUTHORIZED` | 401 | API key inválida o faltante | Error de configuración — no mostrar al usuario |
+| `FORBIDDEN` | 403 | La key no tiene acceso al recurso | Error de configuración — no mostrar al usuario |
+
+### Errores de validación (4xx — no se reintentan)
+
+| Código | Cuándo ocurre |
+|--------|---------------|
+| `INVALID_PARAMETERS` | Faltan campos requeridos o tienen formato incorrecto |
+| `PROBABILITIES_INVALID` | Las probabilidades de los gifts no suman 100 |
+
+### Errores del servidor (5xx — se reintentan automáticamente)
+
+El SDK reintenta todos los errores 5xx automáticamente hasta 3 veces con backoff exponencial antes de lanzar la excepción:
+
+| Intento | Delay |
+|---------|-------|
+| 1er reintento | 1 segundo |
+| 2do reintento | 2 segundos |
+| 3er reintento | 4 segundos |
+
+Si los 3 reintentos fallan, el SDK lanza `NippyError` con el código `SERVER_ERROR`.
+
+## Ejemplo completo de manejo
+
+```typescript
+import { NippyError, NippyErrorCodes } from '@nippy/sdk'
+
+async function handleSpin(userId: string, campaignId: string) {
+  try {
+    const result = await nippy.spin({ userId, campaignId })
+    return { success: true, result }
+
+  } catch (error) {
+    if (!(error instanceof NippyError)) throw error
+
+    switch (error.code) {
+      case NippyErrorCodes.COOLDOWN_ACTIVE: {
+        const state = await nippy.getState({ userId, campaignId })
+        return {
+          success: false,
+          reason: 'cooldown',
+          nextEligibleAt: state.nextEligibleAt
+        }
+      }
+
+      case NippyErrorCodes.SPIN_LIMIT_REACHED:
+        return { success: false, reason: 'limit_reached' }
+
+      case NippyErrorCodes.CAMPAIGN_NOT_FOUND:
+        return { success: false, reason: 'campaign_inactive' }
+
+      case NippyErrorCodes.ALREADY_CLAIMED:
+        return { success: false, reason: 'already_claimed' }
+
+      default:
+        // log y reportar — no mostrar detalle al usuario
+        logger.error('Nippy unexpected error', { code: error.code, message: error.message })
+        return { success: false, reason: 'unexpected_error' }
+    }
+  }
+}
+```
+
+## Propiedades de NippyError
+
+```typescript
+error.code      // string — uno de NippyErrorCodes
+error.message   // string — descripción legible
+error.status    // number — código HTTP de la respuesta
+error.traceId   // string | undefined — para reportar a soporte
+```
+
+Cuando reportes un error a soporte@nippy.la, incluye siempre el `traceId`.

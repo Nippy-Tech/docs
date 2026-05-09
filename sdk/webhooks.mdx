@@ -1,0 +1,194 @@
+---
+mode: "wide"
+title: "Webhooks"
+description: "Eventos que Nippy envía a tu backend con cada mecánica completada"
+icon: "webhook"
+---
+
+Nippy envía webhooks firmados a la `webhookUrl` configurada en tu campaña. Son el canal principal para saber qué pasó — siempre verifica la firma antes de procesar.
+
+## Estructura del envelope
+
+Todos los eventos comparten el mismo envelope:
+
+```json
+{
+  "id": "wh_uuid",
+  "event": "spin.completed",
+  "deliveryAttempt": 1,
+  "traceId": "trace_uuid",
+  "createdAt": "2026-04-30T22:40:34.147Z",
+  "data": {
+    "businessId": "banco-bbva-123",
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "spinId": "spin-xyz",
+    "outcome": "won_points",
+    "gift": {
+      "giftId": "gift-001",
+      "name": "500 puntos",
+      "pointsValue": 500
+    },
+    "claimRequired": false,
+    "spunAt": "2026-04-30T22:40:34.128Z"
+  }
+}
+```
+
+## Headers que recibes
+
+| Header | Contenido |
+|--------|-----------|
+| `X-Nippy-Event` | Tipo de evento (ej: `spin.completed`) |
+| `X-Nippy-Signature` | Firma HMAC-SHA256 del body en crudo |
+
+## Verificar la firma
+
+**Siempre verifica la firma.** Si no lo haces, cualquiera puede enviarte webhooks falsos a tu endpoint.
+
+```typescript
+import { verifyWebhookSignature } from '@nippy/sdk'
+import express from 'express'
+
+const app = express()
+
+app.post('/webhooks/nippy',
+  express.raw({ type: 'application/json' }),  // body en crudo, no parseado
+  (req, res) => {
+    const isValid = verifyWebhookSignature({
+      body: req.body.toString(),
+      signature: req.headers['x-nippy-signature'] as string,
+      secret: process.env.NIPPY_WEBHOOK_SECRET
+    })
+
+    if (!isValid) return res.status(401).send('Invalid signature')
+
+    const event = JSON.parse(req.body.toString())
+
+    switch (event.event) {
+      case 'spin.completed':
+        handleSpinCompleted(event.data)
+        break
+      case 'claim.completed':
+        handleClaimCompleted(event.data)
+        break
+      case 'spin_auto_unlocked':
+        handleAutoUnlocked(event.data)
+        break
+      case 'grant_points_awarded':
+        handlePointsAwarded(event.data)
+        break
+    }
+
+    res.status(200).send('ok')
+  }
+)
+```
+
+<Warning>
+  Usa `express.raw()`, no `express.json()`. La firma se calcula sobre el body en crudo — si lo parseas antes de verificar, la verificación fallará siempre.
+</Warning>
+
+## Eventos disponibles
+
+### spin.completed
+
+Se dispara cuando se completa un spin (manual o automático).
+
+```json
+{
+  "event": "spin.completed",
+  "data": {
+    "businessId": "banco-123",
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "spinId": "spin-xyz",
+    "outcome": "won_points",
+    "gift": {
+      "giftId": "gift-001",
+      "name": "500 puntos",
+      "pointsValue": 500
+    },
+    "claimRequired": false,
+    "spunAt": "2026-04-30T22:40:34.128Z"
+  }
+}
+```
+
+**Qué hacer aquí:** si `outcome === 'won_points'` y `claimRequired === false`, acredita `gift.pointsValue` al usuario.
+
+### claim.completed
+
+Se dispara cuando el usuario reclama un premio que requería confirmación.
+
+```json
+{
+  "event": "claim.completed",
+  "data": {
+    "businessId": "banco-123",
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "spinId": "spin-xyz",
+    "claimId": "claim-001",
+    "gift": {
+      "giftId": "gift-002",
+      "name": "Audífonos Sony",
+      "type": "won_physical"
+    },
+    "claimedAt": "2026-04-30T22:45:00.000Z"
+  }
+}
+```
+
+**Qué hacer aquí:** iniciar el proceso de entrega del premio físico o digital.
+
+### spin_auto_unlocked
+
+Se dispara cuando `track()` evaluó las reglas y desbloqueó un spin automático, justo antes de girar.
+
+```json
+{
+  "event": "spin_auto_unlocked",
+  "data": {
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "eventType": "card.purchase.completed",
+    "ruleId": "rule-001"
+  }
+}
+```
+
+### grant_points_awarded
+
+Se dispara cuando una regla con `action: 'grant_points'` se activó y los puntos fueron acreditados directamente.
+
+```json
+{
+  "event": "grant_points_awarded",
+  "data": {
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "pointsValue": 200,
+    "eventType": "card.purchase.completed"
+  }
+}
+```
+
+**Qué hacer aquí:** acredita `data.pointsValue` al usuario en tu sistema.
+
+## Reintentos
+
+Si tu endpoint retorna cualquier código distinto de `2xx`, Nippy reintenta la entrega automáticamente:
+
+| Intento | Delay |
+|---------|-------|
+| 1 | Inmediato |
+| 2 | 30 segundos |
+| 3 | 5 minutos |
+| 4 | 30 minutos |
+
+Después del cuarto intento fallido, el webhook queda como `failed`. Puedes consultarlo en el [log de webhooks](/sdk/webhook-log).
+
+## Idempotencia
+
+El campo `id` del envelope es único por entrega. Si recibes el mismo `id` dos veces (reintento de red), procésalo solo una vez guardando los IDs ya procesados en tu base de datos.

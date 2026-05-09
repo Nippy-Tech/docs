@@ -1,0 +1,87 @@
+---
+mode: "wide"
+title: "Log de webhooks"
+description: "Consulta el historial de entregas de webhooks para diagnosticar problemas"
+icon: "list"
+---
+
+Nippy mantiene un log de las últimas 20 entregas de webhooks de tu tenant. Úsalo para verificar qué eventos se enviaron, cuándo, y si fueron recibidos correctamente.
+
+## Consultar el log
+
+```http
+GET https://ms.nippy.la/v1/public/webhooks
+x-api-key: npk_live_xxx
+x-business-id: tu-business-id
+```
+
+```bash
+curl https://ms.nippy.la/v1/public/webhooks \
+  -H "x-api-key: npk_live_xxx" \
+  -H "x-business-id: tu-business-id"
+```
+
+## Respuesta
+
+```json
+[
+  {
+    "webhookId": "wh_abc123",
+    "event": "spin.completed",
+    "status": "delivered",
+    "deliveryAttempt": 1,
+    "traceId": "trace_xyz",
+    "createdAt": "2026-04-30T22:40:34.147Z"
+  },
+  {
+    "webhookId": "wh_def456",
+    "event": "spin.completed",
+    "status": "failed",
+    "deliveryAttempt": 4,
+    "traceId": "trace_uvw",
+    "createdAt": "2026-04-30T21:15:00.000Z"
+  }
+]
+```
+
+## Valores de status
+
+| Status | Significado |
+|--------|-------------|
+| `delivered` | Tu endpoint respondió con `2xx` |
+| `pending` | Esperando ser enviado o en proceso de reintento |
+| `failed` | Agotados todos los reintentos sin `2xx` |
+
+## Diagnóstico de entregas fallidas
+
+Si ves entregas con `status: failed`, revisa:
+
+1. **Tu endpoint devuelve `2xx`** — cualquier otro código (incluyendo `200 OK` con body de error) cuenta como fallo
+2. **El endpoint está accesible desde internet** — Nippy no puede alcanzar `localhost` o IPs privadas
+3. **La firma se verifica correctamente** — si rechazas la firma con `401`, Nippy lo cuenta como fallo y reintenta
+
+```typescript
+// Verifica que tu handler siempre responde 200 antes de procesar
+app.post('/webhooks/nippy', express.raw({ type: 'application/json' }), async (req, res) => {
+  // Responde 200 primero, procesa después
+  res.status(200).send('ok')
+
+  const isValid = verifyWebhookSignature({ ... })
+  if (!isValid) return  // log pero no crashear
+
+  const event = JSON.parse(req.body.toString())
+  await processEvent(event)  // async, no bloquea la respuesta
+})
+```
+
+<Note>
+  Responder `200` antes de procesar el evento es una buena práctica. Evita timeouts si tu procesamiento tarda más de lo esperado y previene reintentos innecesarios.
+</Note>
+
+## Usar el traceId para soporte
+
+Cada entrega tiene un `traceId` único. Si necesitas que el equipo de Nippy investigue una entrega específica, incluye el `traceId` en tu reporte:
+
+```
+soporte@nippy.la — asunto: "Webhook fallido traceId: trace_xyz"
+```

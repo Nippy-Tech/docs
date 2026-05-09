@@ -1,0 +1,104 @@
+---
+mode: "wide"
+title: "getState()"
+description: "Consulta el estado actual de un usuario en una campaña antes de intentar girar"
+icon: "circle-info"
+---
+
+`getState()` te dice si un usuario puede girar en este momento, cuántos spins le quedan, y si tiene algún premio pendiente de reclamar. Llámalo antes de mostrar el botón de girar para dar feedback correcto al usuario.
+
+## Uso
+
+```typescript
+const state = await nippy.getState({
+  userId: 'user-123',
+  campaignId: 'camp-abc'
+})
+
+if (state.eligible) {
+  showSpinButton()
+} else {
+  showIneligibilityMessage(state.ineligibilityReason, state.nextEligibleAt)
+}
+```
+
+## Parámetros
+
+<ParamField body="userId" type="string" required>
+  Identificador del usuario en tu sistema.
+</ParamField>
+
+<ParamField body="campaignId" type="string" required>
+  ID de la campaña.
+</ParamField>
+
+## Respuesta — UserState
+
+```typescript
+{
+  eligible: boolean
+
+  ineligibilityReason:
+    | 'cooldown_active'
+    | 'spin_limit_reached'
+    | 'campaign_ended'
+    | null
+
+  spinsUsed: number
+  spinsAllowed: number      // -1 si la campaña es ilimitada
+
+  nextEligibleAt: string | null   // ISO 8601 — cuándo puede girar de nuevo
+
+  pendingClaim: {
+    spinId: string
+    gift: {
+      giftId: string
+      name: string
+      type: string
+    }
+    expiresAt: string   // ISO 8601 — fecha límite para reclamar
+  } | null
+}
+```
+
+## Razones de inelegibilidad
+
+| Valor | Qué muestra al usuario |
+|-------|----------------------|
+| `cooldown_active` | "Puedes girar de nuevo en X minutos" — usa `nextEligibleAt` para calcular el tiempo |
+| `spin_limit_reached` | "Ya usaste todos tus giros de esta campaña" |
+| `campaign_ended` | "Esta campaña ya terminó" |
+| `null` | El usuario es elegible — `eligible: true` |
+
+## Patrón recomendado al abrir la pantalla de la ruleta
+
+```typescript
+const state = await nippy.getState({ userId, campaignId })
+
+// Premio pendiente de reclamar
+if (state.pendingClaim) {
+  const { spinId, gift, expiresAt } = state.pendingClaim
+  showPendingClaimUI({ spinId, gift, expiresAt })
+  return
+}
+
+// En cooldown
+if (state.ineligibilityReason === 'cooldown_active' && state.nextEligibleAt) {
+  const msUntilEligible = new Date(state.nextEligibleAt).getTime() - Date.now()
+  showCooldownTimer(msUntilEligible)
+  return
+}
+
+// Sin spins restantes
+if (state.ineligibilityReason === 'spin_limit_reached') {
+  showSpinsExhaustedUI()
+  return
+}
+
+// Elegible — mostrar botón de girar
+const spinsRemaining = state.spinsAllowed === -1
+  ? 'ilimitados'
+  : state.spinsAllowed - state.spinsUsed
+
+showSpinButton({ spinsRemaining })
+```

@@ -1,0 +1,78 @@
+---
+mode: "wide"
+title: "Introducción"
+description: "Motor de gamificación B2B para apps financieras y de beneficios"
+icon: "bolt"
+---
+
+## Qué es
+
+Nippy es una plataforma WorkerTech con 500K+ usuarios activos en LATAM. El mismo engine de gamificación que opera en producción — ruletas, puntos, retos — ahora está disponible como producto B2B para que cualquier empresa lo integre en su propia app.
+
+**Principio de diseño:** One engine, many shells. Tu banco integra el SDK, Nippy maneja el engine completo: reglas, probabilidades, inventario, entrega de premios, webhooks.
+
+Tú te encargas de tu UX. Nosotros del resto.
+
+## Casos de uso
+
+<CardGroup cols={3}>
+  <Card title="Loyalty transaccional" icon="credit-card">
+    Premia compras, pagos o cualquier evento de negocio. Configura que cada compra mayor a \$500 dispare un spin automáticamente.
+  </Card>
+  <Card title="Onboarding gamificado" icon="rocket">
+    Convierte los pasos del onboarding (abrir cuenta, primer depósito, activar tarjeta) en eventos que desbloquean mecánicas.
+  </Card>
+  <Card title="Retención activa" icon="repeat">
+    Cooldowns y límites de spins configurables para distribuir engagement en el tiempo sin quemar el presupuesto de premios.
+  </Card>
+</CardGroup>
+
+## Arquitectura
+
+```
+Tu app (banco/fintech)
+       │
+       │  npm install @nippy/sdk
+       ▼
+  NippyClient
+  ┌─────────────────────────────────┐
+  │  track()   spin()               │
+  │  getState()  claim()            │
+  └──────────────┬──────────────────┘
+                 │  HTTPS
+                 ▼
+     ms.nippy.la/v1/public/...
+  ┌─────────────────────────────────┐
+  │  Nippy Engine                   │
+  │  • Evaluación de reglas         │
+  │  • Probabilidades y sorteo      │
+  │  • Gestión de inventario        │
+  │  • Reservas de premios          │
+  └──────────────┬──────────────────┘
+                 │  Webhooks firmados
+                 ▼
+     Tu webhook endpoint
+```
+
+### Dos modos de activación
+
+| Modo | Cuándo usar |
+|------|-------------|
+| **Automático vía `track()`** | El usuario dispara un evento (compra, login, etc.) y el engine evalúa si corresponde un spin según las reglas de la campaña |
+| **Directo vía `spin()`** | Tu app decide cuándo girar — útil para flujos donde el usuario presiona explícitamente "girar" |
+
+## Lo que el SDK no hace
+
+- No renderiza la animación (tú controlas la UI; el SDK devuelve el `seed` y `targetAngle` para que la animes tú)
+- No almacena el resultado — guárdalo en tu base de datos vía webhook
+- No gestiona la identidad del usuario — tú pasas el `userId` que usas en tu sistema
+
+## Requisitos
+
+- Node.js 18 o superior
+- Una API key `npk_live_*` (te la entrega el equipo de Nippy)
+- TypeScript 4.5+ (recomendado; funciona en JavaScript puro también)
+
+<Card title="Conectarte en 5 pasos" icon="rocket" href="/sdk/quickstart">
+  Instala el SDK, crea tu primera campaña y recibe tu primer spin en menos de 30 minutos.
+</Card>

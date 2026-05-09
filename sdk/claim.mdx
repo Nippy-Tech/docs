@@ -1,0 +1,111 @@
+---
+mode: "wide"
+title: "claim()"
+description: "Confirma la entrega de un premio físico o digital que requiere reclamación explícita"
+icon: "gift"
+---
+
+`claim()` finaliza la entrega de premios que no se acreditan automáticamente. Cuando un spin resulta en un premio con `prizeReservation.claimRequired === true`, el premio queda reservado hasta que el usuario lo reclame explícitamente.
+
+## Cuándo usar claim()
+
+No todos los premios requieren `claim()`:
+
+| Tipo de premio | Requiere claim() |
+|----------------|-----------------|
+| `won_points` | No — los puntos se acreditan vía webhook automáticamente |
+| `lost` | No |
+| `won_digital` | Depende de la configuración de la campaña |
+| `won_physical` | Sí — siempre requiere confirmación |
+
+Después de un spin, revisa `result.prizeReservation.claimRequired`:
+
+```typescript
+const spin = await nippy.spin({ userId, campaignId })
+
+if (spin.prizeReservation?.claimRequired) {
+  // muestra UI de confirmación al usuario
+  // guarda spin.spinId para el claim posterior
+}
+```
+
+## Uso
+
+```typescript
+const result = await nippy.claim({
+  spinId: 'spin-id-del-resultado-anterior',
+  userId: 'user-123'
+})
+
+console.log(result.status)     // 'claimed'
+console.log(result.claimedAt)  // ISO 8601
+```
+
+## Parámetros
+
+<ParamField body="spinId" type="string" required>
+  El `spinId` del resultado del `spin()` que generó el premio. También disponible en `getState().pendingClaim.spinId`.
+</ParamField>
+
+<ParamField body="userId" type="string" required>
+  Debe coincidir con el `userId` del spin original.
+</ParamField>
+
+## Respuesta — ClaimResult
+
+```typescript
+{
+  claimId: string
+  status: 'claimed'
+  gift: {
+    giftId: string
+    name: string
+    type: string
+    pointsValue: number | null
+  }
+  claimedAt: string   // ISO 8601
+}
+```
+
+Nippy también envía el webhook `claim.completed` con el mismo contenido.
+
+## Errores comunes
+
+| Error | Causa |
+|-------|-------|
+| `ALREADY_CLAIMED` | El premio ya fue reclamado — no es necesario volver a llamar |
+| `RESERVATION_EXPIRED` | El usuario no reclamó antes de `prizeReservation.expiresAt` — el premio se liberó |
+
+<Warning>
+  Las reservas tienen una fecha de expiración (`prizeReservation.expiresAt`). Si el usuario no reclama antes de esa fecha, el premio se libera y vuelve al inventario de la campaña. Muestra siempre un contador de tiempo en tu UI.
+</Warning>
+
+## Flujo completo con claim
+
+```typescript
+// 1. Usuario gira
+const spin = await nippy.spin({ userId, campaignId })
+
+// 2. Mostrar animación
+await animateRoulette(spin.animation)
+
+// 3. Si requiere claim, mostrar UI con countdown
+if (spin.prizeReservation?.claimRequired) {
+  const confirmed = await showClaimConfirmation({
+    gift: spin.gift,
+    expiresAt: spin.prizeReservation.expiresAt
+  })
+
+  if (confirmed) {
+    // 4. Usuario confirma — reclamar
+    const claim = await nippy.claim({
+      spinId: spin.spinId,
+      userId
+    })
+    showSuccess(claim.gift)
+  }
+} else {
+  // Premio automático — solo mostrar resultado
+  showResult(spin.gift)
+}
+```

@@ -1,0 +1,108 @@
+---
+mode: "wide"
+title: "spin()"
+description: "Gira directamente para un usuario y obtén el resultado de forma síncrona"
+icon: "rotate"
+---
+
+`spin()` ejecuta un giro inmediato y devuelve el resultado completo de forma síncrona. Usa este método cuando tu UI necesita mostrar la animación y el premio en el mismo flujo.
+
+## Uso
+
+```typescript
+const result = await nippy.spin({
+  userId: 'user-123',
+  campaignId: 'camp-abc'
+})
+
+console.log(result.outcome)      // 'won_points'
+console.log(result.gift.name)    // '500 puntos'
+console.log(result.animation)    // { seed, durationMs, targetAngle }
+```
+
+## Parámetros
+
+<ParamField body="userId" type="string" required>
+  Identificador del usuario en tu sistema.
+</ParamField>
+
+<ParamField body="campaignId" type="string" required>
+  ID de la campaña.
+</ParamField>
+
+<ParamField body="idempotencyKey" type="string">
+  Clave de idempotencia para evitar spins duplicados en caso de reintentos de red. Si no se pasa, el SDK genera uno automáticamente. Úsalo si tienes tu propio mecanismo de reintentos.
+</ParamField>
+
+## Respuesta — SpinResult
+
+```typescript
+{
+  spinId: string
+  outcome: 'won_points' | 'lost' | 'won_digital' | 'won_physical'
+
+  gift: {
+    giftId: string
+    name: string
+    type: string
+    pointsValue: number | null   // presente si outcome === 'won_points'
+    imageUrl: string | null
+    expiresAt: string | null     // ISO 8601
+  }
+
+  animation: {
+    seed: number         // para reproducir la misma animación determinísticamente
+    durationMs: number   // duración recomendada de la animación
+    targetAngle: number  // ángulo final de la ruleta en grados (0-360)
+  }
+
+  inventory: {
+    remaining: number    // stock restante del premio ganado (-1 si ilimitado)
+  }
+
+  prizeReservation: {
+    reservationId: string
+    expiresAt: string    // ISO 8601 — tienes hasta aquí para hacer claim()
+    claimRequired: boolean
+  } | null
+}
+```
+
+## Cómo usar la animación
+
+El SDK no renderiza nada — tú controlas la UI. Los campos de `animation` te dan todo lo que necesitas para mostrar una ruleta determinística:
+
+```typescript
+const result = await nippy.spin({ userId, campaignId })
+
+// Muestra la animación de la ruleta
+await runRouletteAnimation({
+  seed: result.animation.seed,
+  duration: result.animation.durationMs,
+  targetAngle: result.animation.targetAngle
+})
+
+// Cuando termina, muestra el premio
+showPrize(result.gift)
+```
+
+## Premios que requieren claim
+
+Algunos premios físicos requieren confirmación explícita antes de entregarse. Cuando `prizeReservation.claimRequired === true`, debes llamar `claim()` antes de que expire la reserva:
+
+```typescript
+const result = await nippy.spin({ userId, campaignId })
+
+if (result.prizeReservation?.claimRequired) {
+  // guarda el spinId y pide confirmación al usuario
+  // luego llama nippy.claim({ spinId: result.spinId, userId })
+}
+```
+
+## Errores comunes
+
+| Error | Causa |
+|-------|-------|
+| `COOLDOWN_ACTIVE` | El usuario debe esperar antes de girar de nuevo. Usa `getState()` para saber cuánto |
+| `SPIN_LIMIT_REACHED` | El usuario agotó sus spins permitidos en esta campaña |
+| `CAMPAIGN_NOT_FOUND` | La campaña no existe o está inactiva |

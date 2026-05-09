@@ -1,0 +1,176 @@
+---
+mode: "wide"
+title: "Campañas"
+description: "Crea campañas, configura premios y define reglas de activación automática"
+icon: "flag"
+---
+
+Las campañas son el contenedor central de toda la mecánica. Defines los premios disponibles, sus probabilidades, los límites por usuario y cuándo se activan.
+
+## Crear una campaña
+
+```http
+POST https://ms.nippy.la/v1/public/campaigns
+x-api-key: npk_live_xxx
+x-business-id: tu-business-id
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "Campaña Verano 2026",
+  "webhookUrl": "https://tu-app.com/webhooks/nippy",
+  "webhookSecret": "un-secret-seguro-min-16-chars",
+  "spinsAllowed": 3,
+  "cooldownMinutes": 60,
+  "gifts": [
+    {
+      "name": "500 puntos",
+      "type": "won_points",
+      "pointsValue": 500,
+      "probability": 60
+    },
+    {
+      "name": "100 puntos",
+      "type": "won_points",
+      "pointsValue": 100,
+      "probability": 30
+    },
+    {
+      "name": "Perder",
+      "type": "lost",
+      "probability": 10
+    }
+  ]
+}
+```
+
+**Respuesta:**
+
+```json
+{
+  "campaignId": "camp-abc123",
+  "businessId": "tu-business-id",
+  "name": "Campaña Verano 2026",
+  "status": "active",
+  "createdAt": "2026-05-01T00:00:00.000Z"
+}
+```
+
+### Parámetros
+
+<ParamField body="name" type="string" required>
+  Nombre interno de la campaña. Solo visible en tu consola.
+</ParamField>
+
+<ParamField body="webhookUrl" type="string" required>
+  URL de tu backend donde Nippy enviará los eventos. Debe ser HTTPS.
+</ParamField>
+
+<ParamField body="webhookSecret" type="string" required>
+  Secret para verificar la firma HMAC-SHA256 de los webhooks. Mínimo 16 caracteres.
+</ParamField>
+
+<ParamField body="spinsAllowed" type="number" required>
+  Número máximo de spins por usuario. Usa `-1` para ilimitado.
+</ParamField>
+
+<ParamField body="cooldownMinutes" type="number" required>
+  Minutos de espera entre spins del mismo usuario. Usa `0` para sin cooldown.
+</ParamField>
+
+<ParamField body="gifts" type="array" required>
+  Lista de premios disponibles. Las probabilidades deben sumar exactamente 100.
+</ParamField>
+
+## Tipos de premios
+
+| Tipo | Descripción | Campos adicionales |
+|------|-------------|-------------------|
+| `won_points` | Acredita puntos al usuario | `pointsValue` (requerido) |
+| `lost` | No gana nada — necesario para que las probabilidades sumen 100 | — |
+| `won_digital` | Premio digital (código, voucher, etc.) | `name` descriptivo |
+| `won_physical` | Premio físico con inventario controlado | `name` descriptivo |
+
+<Note>
+  Las probabilidades de todos los gifts de una campaña deben sumar exactamente **100**. Si no suman 100, la creación falla con un error de validación.
+</Note>
+
+## Crear reglas de activación
+
+Las reglas definen qué evento de negocio dispara una mecánica automáticamente. Cuando el banco llama `nippy.track()`, el engine evalúa las reglas de la campaña y ejecuta la acción si se cumple la condición.
+
+```http
+POST https://ms.nippy.la/v1/public/campaigns/:campaignId/rules
+x-api-key: npk_live_xxx
+x-business-id: tu-business-id
+Content-Type: application/json
+```
+
+### Regla: desbloquear spin por compra mayor a \$100
+
+```json
+{
+  "eventType": "card.purchase.completed",
+  "condition": {
+    "field": "value",
+    "operator": "gt",
+    "value": 100
+  },
+  "action": "unlock_spin"
+}
+```
+
+### Regla: acreditar puntos por compra mayor a \$500
+
+```json
+{
+  "eventType": "card.purchase.completed",
+  "condition": {
+    "field": "value",
+    "operator": "gte",
+    "value": 500
+  },
+  "action": "grant_points",
+  "pointsValue": 200
+}
+```
+
+### Operadores de condición disponibles
+
+| Operador | Significado |
+|----------|-------------|
+| `gt` | Mayor que |
+| `gte` | Mayor o igual que |
+| `lt` | Menor que |
+| `lte` | Menor o igual que |
+| `eq` | Igual a |
+
+### Acciones disponibles
+
+| Acción | Descripción |
+|--------|-------------|
+| `unlock_spin` | Dispara un spin automático para el usuario. El resultado llega vía webhook `spin.completed`. |
+| `grant_points` | Acredita puntos directamente sin girar. Requiere el campo `pointsValue`. |
+
+## Listar campañas
+
+```http
+GET https://ms.nippy.la/v1/public/campaigns
+x-api-key: npk_live_xxx
+x-business-id: tu-business-id
+```
+
+```json
+[
+  {
+    "campaignId": "camp-abc123",
+    "name": "Campaña Verano 2026",
+    "status": "active",
+    "totalSpins": 1420,
+    "totalWins": 987,
+    "startsAt": null,
+    "endsAt": null
+  }
+]
+```

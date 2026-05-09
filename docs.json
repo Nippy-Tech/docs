@@ -54,6 +54,37 @@
         ]
       },
       {
+        "tab": "SDK",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "sdk/introduction",
+              "sdk/quickstart",
+              "sdk/authentication",
+              "sdk/campaigns"
+            ]
+          },
+          {
+            "group": "SDK Reference",
+            "pages": [
+              "sdk/track",
+              "sdk/spin",
+              "sdk/get-state",
+              "sdk/claim"
+            ]
+          },
+          {
+            "group": "Integraciones",
+            "pages": [
+              "sdk/webhooks",
+              "sdk/errors",
+              "sdk/webhook-log"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "MCP Tools",
         "groups": [
           {

@@ -1,0 +1,93 @@
+---
+mode: "wide"
+title: "track()"
+description: "Envía un evento de negocio y deja que el engine decida si corresponde una mecánica"
+icon: "paper-plane"
+---
+
+`track()` es el método central del flujo automático. Tu app reporta lo que pasó (una compra, un login, la activación de una tarjeta), y el engine de Nippy evalúa si alguna regla de la campaña se cumple. Si se cumple, el spin ocurre automáticamente sin que tengas que pedirlo.
+
+## Uso
+
+```typescript
+const result = await nippy.track({
+  userId: 'user-123',
+  campaignId: 'camp-abc',
+  eventType: 'card.purchase.completed',
+  properties: { value: 500 },
+  occurredAt: new Date().toISOString() // opcional
+})
+
+if (result.triggered.length > 0) {
+  // se dispararon mecánicas — el resultado llegará por webhook
+  console.log(`${result.triggered.length} spin(s) activados`)
+}
+```
+
+## Parámetros
+
+<ParamField body="userId" type="string" required>
+  Identificador del usuario en tu sistema. Puede ser cualquier string único — UUID, email hasheado, ID interno. Nippy no gestiona identidades.
+</ParamField>
+
+<ParamField body="campaignId" type="string" required>
+  ID de la campaña contra la que se evalúa el evento.
+</ParamField>
+
+<ParamField body="eventType" type="string" required>
+  Tipo de evento. Debe coincidir exactamente con el `eventType` configurado en la regla. Ejemplos: `card.purchase.completed`, `account.onboarding.completed`, `bill.payment.completed`.
+</ParamField>
+
+<ParamField body="properties" type="object">
+  Datos del evento que se evalúan en las condiciones de las reglas. Si tu regla filtra por `value > 100`, este objeto debe tener la propiedad `value`.
+</ParamField>
+
+<ParamField body="occurredAt" type="string (ISO 8601)">
+  Timestamp de cuándo ocurrió el evento en tu sistema. Útil si procesas eventos con delay. Si se omite, Nippy usa la hora de recepción.
+</ParamField>
+
+## Respuesta
+
+```typescript
+{
+  triggered: Array<{
+    spinId: string       // ID del spin disparado
+    campaignId: string
+    ruleId: string       // qué regla lo activó
+  }>
+}
+```
+
+Si `triggered` está vacío, ninguna regla aplicó para este evento en esta campaña.
+
+<Note>
+  `track()` no retorna el resultado del spin — ese llega por webhook `spin.completed`. El webhook puede tardar unos segundos en llegar.
+</Note>
+
+## Cuándo usar track() vs spin()
+
+| Escenario | Método recomendado |
+|-----------|-------------------|
+| Usuario completa una compra y quieres premiar automáticamente | `track()` |
+| Usuario presiona un botón "Girar" en tu UI | `spin()` |
+| Quieres dar un spin de bienvenida al registrarse | `track()` con `eventType: 'user.registered'` |
+| Necesitas el resultado del spin de forma síncrona | `spin()` |
+
+## Ejemplo con múltiples campañas
+
+Si tienes varias campañas activas, debes llamar `track()` por cada campaña que quieras evaluar:
+
+```typescript
+const campaignIds = ['camp-loyalty', 'camp-onboarding']
+
+await Promise.all(
+  campaignIds.map(campaignId =>
+    nippy.track({
+      userId: 'user-123',
+      campaignId,
+      eventType: 'card.purchase.completed',
+      properties: { value: 750 }
+    })
+  )
+)
+```
