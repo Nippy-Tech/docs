@@ -25,6 +25,13 @@
             "pages": [
               "authentication"
             ]
+          },
+          {
+            "group": "Soporte",
+            "pages": [
+              "errors",
+              "changelog"
+            ]
           }
         ]
       },
