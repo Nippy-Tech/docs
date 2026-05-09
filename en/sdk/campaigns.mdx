@@ -70,11 +70,11 @@ Content-Type: application/json
   Secret for verifying the HMAC-SHA256 webhook signature. Minimum 16 characters.
 </ParamField>
 
-<ParamField body="spinsAllowed" type="number" required>
+<ParamField body="spinsAllowed" type="number" default="1">
   Maximum spins per user. Use `-1` for unlimited.
 </ParamField>
 
-<ParamField body="cooldownMinutes" type="number" required>
+<ParamField body="cooldownMinutes" type="number" default="0">
   Wait time between spins for the same user. Use `0` for no cooldown.
 </ParamField>
 

@@ -70,11 +70,11 @@ Content-Type: application/json
   Secret para verificar la firma HMAC-SHA256 de los webhooks. Mínimo 16 caracteres.
 </ParamField>
 
-<ParamField body="spinsAllowed" type="number" required>
+<ParamField body="spinsAllowed" type="number" default="1">
   Número máximo de spins por usuario. Usa `-1` para ilimitado.
 </ParamField>
 
-<ParamField body="cooldownMinutes" type="number" required>
+<ParamField body="cooldownMinutes" type="number" default="0">
   Minutos de espera entre spins del mismo usuario. Usa `0` para sin cooldown.
 </ParamField>
 
