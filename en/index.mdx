@@ -6,15 +6,15 @@ description: "Documentation for integrating the Nippy gamification SDK and MCP s
 
 # Overview
 
-Nippy has two integration surfaces. Use the SDK to run gamification mechanics from your application. Use MCP to let compatible agents and clients query and operate Nippy tools.
+Documentation for integrating products with Nippy. Use the SDK to run gamification mechanics from your application, or connect an MCP client to query and operate internal tools with natural language.
 
 ## Main sections
 
 <CardGroup cols={2}>
-  <Card title="Gamification SDK" icon="code" href="/en/quickstart#sdk">
-    Integrate campaigns, spins, claims, webhooks, and error handling from your application.
+  <Card title="Gamification SDK" icon="code" href="/en/sdk/introduction">
+    Integrate campaigns, spins, claims, webhooks, and error handling from your backend or frontend.
   </Card>
-  <Card title="MCP" icon="plug" href="/en/quickstart#mcp">
+  <Card title="MCP" icon="plug" href="/en/mcp/introduction">
     Connect MCP-compatible clients to query analytics, roulettes, flows, learning, and supply.
   </Card>
 </CardGroup>
@@ -30,6 +30,40 @@ Nippy has two integration surfaces. Use the SDK to run gamification mechanics fr
   </Card>
 </CardGroup>
 
+## SDK reference
+
+<CardGroup cols={2}>
+  <Card title="track()" icon="paper-plane" href="/en/sdk/track">
+    Send business events and let Nippy evaluate campaign rules.
+  </Card>
+  <Card title="spin()" icon="rotate" href="/en/sdk/spin">
+    Run an immediate spin and receive the result synchronously.
+  </Card>
+  <Card title="getState()" icon="circle-info" href="/en/sdk/get-state">
+    Check eligibility, cooldowns, remaining spins, and pending claims.
+  </Card>
+  <Card title="claim()" icon="gift" href="/en/sdk/claim">
+    Confirm physical or digital prizes that require an explicit claim.
+  </Card>
+</CardGroup>
+
+## Operations and support
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/en/sdk/authentication">
+    Configure API keys and required headers for SDK and public API calls.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/en/sdk/webhooks">
+    Verify signatures and process events emitted by Nippy.
+  </Card>
+  <Card title="SDK errors" icon="triangle-exclamation" href="/en/sdk/errors">
+    Review error codes, causes, and handling patterns.
+  </Card>
+  <Card title="MCP errors" icon="circle-exclamation" href="/en/errors">
+    Diagnose common errors when using the MCP server.
+  </Card>
+</CardGroup>
+
 <Note>
-  Use an API key with the `npk_` prefix for credentials and console access. Do not commit it to repositories or expose it in public clients.
+  For credentials and console access, use an API key with the `npk_` prefix. Do not commit it to repositories or expose it in public clients.
 </Note>

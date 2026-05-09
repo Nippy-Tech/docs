@@ -1,0 +1,48 @@
+---
+title: "API Reference"
+description: "How to connect directly to the Nippy MCP server"
+icon: "terminal"
+---
+
+## MCP server
+
+All AI-based access to Nippy goes through one endpoint:
+
+```text
+https://ms.nippy.la/cognitive-layer/mcp
+```
+
+This endpoint implements the **Model Context Protocol (MCP) over streamable HTTP** with JSON-RPC 2.0. Any compatible MCP client can connect to it, including Claude Desktop, Cursor, OpenClaw, and Hermes Agent.
+
+## Authentication
+
+Every request must include your API key in the header:
+
+```http
+X-API-Key: npk_your_api_key_here
+```
+
+<Note>
+  Your API key determines which business you belong to. You do not need to pass business IDs in tool calls. The server resolves them automatically.
+</Note>
+
+## Available endpoints
+
+| Endpoint | Method | Use |
+|----------|--------|-----|
+| `/cognitive-layer/mcp` | `POST` | Main MCP server and tools |
+| `/cognitive-layer/oauth/token` | `POST` | OAuth 2.0 for clients that require it |
+| `/cognitive-layer/health` | `GET` | Server health check without authentication |
+
+## Where to start
+
+If you want to connect an MCP client, start with the quickstart.
+
+<Card
+  title="Connect your client"
+  icon="rocket"
+  href="/en/quickstart#mcp"
+  horizontal
+>
+  Claude Desktop, Cursor, OpenClaw, and Hermes Agent in one guide.
+</Card>
