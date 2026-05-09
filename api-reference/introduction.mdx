@@ -1,109 +1,48 @@
 ---
-title: "Introducción"
-description: "Referencia de endpoints HTTP del servidor de Nippy"
+title: "API Reference"
+description: "Cómo conectarte directamente al servidor MCP de Nippy"
 icon: "terminal"
 ---
 
-## Endpoints HTTP
+## Servidor MCP
 
-El servidor de Nippy expone los siguientes endpoints REST. Todos los endpoints (excepto `/health`) requieren autenticación vía header `X-API-Key` o `Authorization: Bearer <jwt>`.
+Todo el acceso a Nippy vía IA pasa por un solo endpoint:
 
-### Servidor MCP
+```
+https://ms.nippy.la/cognitive-layer/mcp
+```
 
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/mcp` | `POST` | Servidor MCP principal sobre HTTP streamable (JSON-RPC 2.0). Todas las tools de analytics, supply, roulettes, flows y learning se exponen aquí. |
-| `/oauth/token` | `POST` | Intercambio de token OAuth 2.0 para clientes que implementan el protocolo completo de autenticación. Retorna un `access_token` JWT. |
-
-### Sistema
-
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/health` | `GET` | Health check general del servidor. No requiere autenticación. |
-
----
+Este endpoint implementa el **Model Context Protocol (MCP) sobre HTTP streamable** (JSON-RPC 2.0). Cualquier cliente MCP compatible — Claude Desktop, Cursor, OpenClaw, Hermes Agent — se conecta aquí.
 
 ## Autenticación
 
-Todos los endpoints (excepto `/health`) requieren uno de estos headers:
+Cada request debe incluir tu API key en el header:
 
 ```http
 X-API-Key: npk_tu_api_key_aqui
 ```
 
-o para OAuth:
+<Note>
+  Tu API key determina a qué negocio perteneces. No necesitas pasar IDs de negocio en ninguna llamada — el servidor los resuelve automáticamente.
+</Note>
 
-```http
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
-```
+## Endpoints disponibles
 
-Las API keys tienen el prefijo `npk_` y están ligadas a un negocio específico. El servidor resuelve el `business_id` automáticamente a partir de la key.
+| Endpoint | Método | Uso |
+|----------|--------|-----|
+| `/cognitive-layer/mcp` | `POST` | Servidor MCP principal — todas las tools |
+| `/cognitive-layer/oauth/token` | `POST` | OAuth 2.0 para clientes que lo requieran |
+| `/cognitive-layer/health` | `GET` | Estado del servidor (sin autenticación) |
+
+## ¿Por dónde empiezo?
+
+Si quieres conectar tu cliente MCP, el quickstart es el lugar correcto.
 
 <Card
-  title="Guía de autenticación"
-  icon="key"
-  href="/authentication"
+  title="Conecta tu cliente en 3 pasos"
+  icon="rocket"
+  href="/quickstart"
   horizontal
 >
-  Aprende a obtener tu API key y autenticarte con X-API-Key u OAuth Bearer JWT.
+  Claude Desktop, Cursor, OpenClaw y Hermes Agent — todo en un solo lugar.
 </Card>
-
----
-
-## Formato de peticiones MCP
-
-El endpoint `/mcp` acepta peticiones JSON-RPC 2.0. Las tools se invocan con el método `tools/call`:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "supply_list_stocks",
-    "arguments": {
-      "limit": 10
-    }
-  }
-}
-```
-
-Para listar todas las tools disponibles:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/list"
-}
-```
-
-## Verticales MCP
-
-Las tools del servidor MCP están organizadas por verticales. Cada vertical tiene su propio namespace:
-
-| Vertical | Prefijo | Tools |
-|----------|---------|-------|
-| Analytics | `analytics_` | `execute_pipeline`, `execute_pipelines` |
-| Supply | `supply_` | `list_stocks`, `list_nippy_center_stocks`, `get_low_stock_alerts`, `get_withdrawal_history`, `list_nippy_centers`, `propose_nippy_center`, `create_nippy_center`, `propose_stock`, `create_stock`, `propose_nippy_center_stock`, `create_nippy_center_stock`, `propose_withdrawal`, `approve_withdrawal` |
-| Roulettes | `roulettes_` | `list_roulette_items`, `get_roulette`, `list_roulettes`, `propose_item`, `create_item`, `propose_roulette`, `create_roulette` |
-| Flows | `flows_` | `list_flows`, `get_flow_stats`, `get_flow_by_slug`, `propose_create_flow`, `approve_create_flow`, `propose_update_flow`, `approve_update_flow` |
-| Learning | `learning_` | `list_courses`, `get_enrollment_stats`, `get_course_progress`, `get_exam_results`, `get_certificates_issued`, `propose_create_course`, `approve_create_course`, `propose_update_course`, `approve_update_course`, `propose_issue_certificate`, `approve_issue_certificate` |
-
-<CardGroup cols={3}>
-  <Card title="Analytics" icon="chart-bar" href="/mcp/analytics">
-    Consulta tus datos en lenguaje natural
-  </Card>
-  <Card title="Supply" icon="box" href="/mcp/supply">
-    Inventario y Nippy Centers
-  </Card>
-  <Card title="Roulettes" icon="ticket" href="/mcp/roulettes">
-    Gamificación y premios
-  </Card>
-  <Card title="Flows" icon="route" href="/mcp/flows">
-    Landing pages de registro
-  </Card>
-  <Card title="Learning" icon="graduation-cap" href="/mcp/learning">
-    LMS, cursos y certificados
-  </Card>
-</CardGroup>

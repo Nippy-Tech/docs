@@ -1,11 +1,29 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Nippy",
+  "theme": "maple",
+  "name": "Nippy Platform",
   "colors": {
-    "primary": "#6366F1",
-    "light": "#818CF8",
-    "dark": "#4F46E5"
+    "primary": "#4D9EFF",
+    "light": "#4D9EFF",
+    "dark": "#378ADD"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "background": {
+    "style": "gradient",
+    "color": {
+      "dark": "#080D14",
+      "light": "#F8FAFC"
+    }
+  },
+  "font": {
+    "headings": {
+      "family": "DM Sans"
+    },
+    "body": {
+      "family": "DM Sans"
+    }
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -39,13 +57,14 @@
         "tab": "MCP Tools",
         "groups": [
           {
-            "group": "Verticals",
+            "group": "Verticales",
             "pages": [
               "mcp/analytics",
               "mcp/supply",
               "mcp/roulettes",
               "mcp/flows",
-               "mcp/learning"
+              "mcp/learning",
+              "mcp/vision"
             ]
           }
         ]
@@ -65,16 +84,17 @@
     "global": {
       "anchors": [
         {
-          "anchor": "nippy.la",
-          "href": "https://nippy.la",
-          "icon": "globe"
+          "anchor": "Consola",
+          "href": "https://console.nippy.la",
+          "icon": "arrow-up-right"
         }
       ]
     }
   },
   "logo": {
     "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "dark": "/logo/dark.svg",
+    "href": "https://console.nippy.la"
   },
   "navbar": {
     "links": [
@@ -85,7 +105,7 @@
     ],
     "primary": {
       "type": "button",
-      "label": "Consola",
+      "label": "Abrir consola",
       "href": "https://console.nippy.la"
     }
   },

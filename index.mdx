@@ -1,16 +1,23 @@
 ---
-title: "Nippy MCP — pregúntale a tu IA y te responde con datos reales"
-description: "Conecta Claude, Cursor o cualquier cliente MCP a tu negocio en Nippy. Consulta datos, crea campañas, gestiona inventario y más, todo en lenguaje natural."
-icon: "bolt"
+title: "Nippy Platform"
+description: "Conecta tu IA a tu negocio. Opera en lenguaje natural."
 ---
 
-## Háblale a tu agente como si fuera parte de tu equipo
+<div style={{marginBottom: "48px", paddingTop: "8px"}}>
+  <p style={{fontSize: "12px", fontWeight: "500", color: "#4D9EFF", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: "20px", fontFamily: "DM Mono, monospace"}}>Documentación · MCP</p>
+  <h1 style={{fontSize: "clamp(32px, 4vw, 52px)", fontWeight: "800", lineHeight: "1.0", letterSpacing: "-0.045em", color: "#F0F6FF", marginBottom: "20px"}}>Tu negocio,<br/>en lenguaje natural.</h1>
+  <p style={{fontSize: "17px", color: "rgba(240,246,255,0.55)", lineHeight: "1.65", maxWidth: "500px", marginBottom: "32px"}}>
+    Conecta Claude, Cursor u otro cliente MCP y pregúntale directamente a tus datos. Sin dashboards, sin reportes, sin esperas.
+  </p>
+  <div style={{display: "flex", gap: "12px", flexWrap: "wrap"}}>
+    <a href="/quickstart" style={{display: "inline-flex", alignItems: "center", gap: "8px", background: "#4D9EFF", color: "#080D14", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", fontSize: "14px", textDecoration: "none"}}>Conectar ahora →</a>
+    <a href="/mcp/analytics" style={{display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(77,158,255,0.1)", color: "#4D9EFF", padding: "10px 20px", borderRadius: "8px", fontWeight: "600", fontSize: "14px", textDecoration: "none", border: "1px solid rgba(77,158,255,0.2)"}}>Ver herramientas</a>
+  </div>
+</div>
 
-Con el MCP de Nippy, le puedes preguntar a Claude o Cursor cosas como *"¿cuántos premios se canjearon esta semana?"* o *"crea una campaña con ruleta para las mochilas nuevas"* — y lo hace. Sin abrir la consola, sin exportar Excel, sin esperar un reporte.
+---
 
-El agente traduce lo que le pides a las operaciones reales de tu negocio: consulta tu inventario, crea landing pages, configura ruletas de premios, revisa el progreso de tus cursos. Todo en segundos.
-
-## Lo que puedes hacer
+## Verticales
 
 <CardGroup cols={2}>
   <Card
@@ -18,51 +25,60 @@ El agente traduce lo que le pides a las operaciones reales de tu negocio: consul
     icon="chart-bar"
     href="/mcp/analytics"
   >
-    Pregunta lo que quieras sobre tus datos: cuántos giros de ruleta hubo, qué productos se están acabando, cuánta gente terminó un curso. Tu agente arma la consulta y te da los números.
+    Pregunta sobre tus datos en español. Tu agente construye la consulta y te entrega los resultados.
   </Card>
   <Card
     title="Supply"
-    icon="box"
+    icon="boxes-stacking"
     href="/mcp/supply"
   >
-    Revisa tu inventario sin entrar a la consola. Checa qué hay en cada centro, recibe alertas de lo que está por agotarse y registra entregas a tu equipo.
+    Stock por centro, retiros, alertas de inventario bajo y creación de centros de distribución.
   </Card>
   <Card
     title="Roulettes"
     icon="ticket"
     href="/mcp/roulettes"
   >
-    Arma ruletas de premios para tus campañas. Define qué se gana, con qué probabilidad, y deja que tu agente configure todo. Después solo activas cuando estés listo.
+    Crea y gestiona ruletas de premios. Desde propuesta hasta publicación, con validación de stock.
   </Card>
   <Card
     title="Flows"
     icon="route"
     href="/mcp/flows"
   >
-    Crea páginas de registro para tus campañas. Dile a tu agente qué datos pedir y a dónde mandar a la gente después — una ruleta, un curso, un link de WhatsApp.
+    Landing pages de registro para campañas. Configura campos, redirects y métricas de conversión.
   </Card>
   <Card
     title="Learning"
     icon="graduation-cap"
     href="/mcp/learning"
   >
-    Administra tus cursos desde el chat. Revisa quién va avanzando, quién aprobó el examen, y entrega certificados sin tocar la plataforma.
+    Cursos, inscripciones, exámenes y certificados. Crea y actualiza sin abrir la plataforma.
+  </Card>
+  <Card
+    title="Vision"
+    icon="eye"
+    href="/mcp/vision"
+  >
+    OCR de documentos y extracción de facturas vía IA. Para flujos de devoluciones y campo.
   </Card>
 </CardGroup>
 
-## ¿Con qué cliente funciona?
+---
 
-El servidor usa MCP estándar. Lo conectas una vez y funciona con:
+## Clientes compatibles
 
-- **Claude Desktop** — las tools aparecen en el chat, listas para usarse
-- **Cursor** — tu agente en el editor tiene acceso directo a tus datos
-- **OpenClaw**, **Hermes Agent** y cualquier otro cliente que hable MCP
-
-<Card
-  title="Conéctate en 3 pasos"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Saca tu API key, agrégala a tu cliente y haz tu primera pregunta.
-</Card>
+<CardGroup cols={4}>
+  <Card title="Claude Desktop" icon="robot" href="/quickstart">
+    Integración nativa
+  </Card>
+  <Card title="Cursor" icon="code" href="/quickstart">
+    Agente en el editor
+  </Card>
+  <Card title="OpenClaw" icon="bolt" href="/quickstart">
+    Runtime local
+  </Card>
+  <Card title="Hermes Agent" icon="brain" href="/quickstart">
+    Open source
+  </Card>
+</CardGroup>
