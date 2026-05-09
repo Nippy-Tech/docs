@@ -1,0 +1,44 @@
+---
+title: "Common errors"
+description: "Nippy MCP server errors and how to resolve them"
+icon: "circle-exclamation"
+---
+
+All error responses include a `detail` field with specific context.
+
+<Warning>
+  When reporting an error to soporte@nippy.la, include the `request_id`, `detail`, and the action you were running.
+</Warning>
+
+## HTTP errors
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized">
+    **Cause:** The API key is missing, incorrect, or does not use the `npk_` prefix.
+
+    **Fix:** Send `X-API-Key` with a valid key.
+
+    ```bash
+    curl https://ms.nippy.la/cognitive-layer/mcp \
+      -H "X-API-Key: npk_your_api_key_here"
+    ```
+  </Accordion>
+
+  <Accordion title="403 Forbidden">
+    **Cause:** The key does not have access to the requested vertical, tool, or resource.
+
+    **Fix:** Review permissions and confirm the resource belongs to your business.
+  </Accordion>
+
+  <Accordion title="429 Too Many Requests">
+    **Cause:** The client sent too many requests in a short period.
+
+    **Fix:** Wait and spread requests over time.
+  </Accordion>
+
+  <Accordion title="500 Internal Server Error">
+    **Cause:** An internal error occurred while executing the request.
+
+    **Fix:** Retry later. If it persists, report the `request_id`.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,49 @@
+---
+title: "MCP introduction"
+description: "Connect an AI agent to Nippy and operate your platform in natural language"
+icon: "brain"
+---
+
+## What Nippy MCP is
+
+Nippy MCP exposes the operational engine of the platform as tools that AI agents can call. Instead of opening a console, navigating menus, and exporting reports, you can ask directly:
+
+- "How many active campaigns do we have this week?"
+- "Create a roulette for the summer campaign with 500 points as the main prize."
+- "Which products are below minimum stock in the Monterrey center?"
+
+The agent executes the operation, retrieves data, and acts through the tools available to your business.
+
+## How it relates to the SDK
+
+The SDK and MCP access the same engine from different surfaces.
+
+| | SDK | MCP |
+|--|-----|-----|
+| **Used by** | End users in your app | Your team or AI agent |
+| **Accessed through** | npm package | MCP client |
+| **Primary job** | Spin, win, claim | Create, analyze, manage |
+
+## Available verticals
+
+<CardGroup cols={2}>
+  <Card title="Analytics" icon="chart-bar" href="/en/mcp/analytics">
+    Query roulettes, supply, courses, and operational metrics.
+  </Card>
+  <Card title="Supply" icon="boxes-stacking" href="/en/mcp/supply">
+    Manage stock levels, withdrawals, centers, and low-stock alerts.
+  </Card>
+  <Card title="Roulettes" icon="ticket" href="/en/mcp/roulettes">
+    Create and manage gamification campaigns from an agent.
+  </Card>
+  <Card title="Flows" icon="route" href="/en/mcp/flows">
+    Configure registration landing pages and review conversion.
+  </Card>
+  <Card title="Learning" icon="graduation-cap" href="/en/mcp/learning">
+    Manage courses, enrollments, exams, and certificates.
+  </Card>
+</CardGroup>
+
+<Card title="Connect in minutes" icon="rocket" href="/en/quickstart#mcp" horizontal>
+  Configure an MCP client with the Nippy endpoint and your API key.
+</Card>

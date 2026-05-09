@@ -1,0 +1,78 @@
+---
+title: "track()"
+description: "Send a business event and evaluate campaign rules"
+icon: "paper-plane"
+---
+
+`track()` records a business event and evaluates whether any campaign rule should trigger a mechanic.
+
+## Usage
+
+<CodeGroup>
+```typescript TypeScript
+const result = await nippy.track({
+  userId: 'user-123',
+  campaignId: 'camp-abc',
+  eventType: 'card.purchase.completed',
+  properties: { value: 500 },
+  occurredAt: new Date().toISOString()
+})
+```
+
+```bash curl
+curl -X POST https://ms.nippy.la/v1/public/events/track \
+  -H "x-api-key: npk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "eventType": "card.purchase.completed",
+    "properties": { "value": 500 },
+    "occurredAt": "2026-05-01T12:00:00.000Z"
+  }'
+```
+</CodeGroup>
+
+## Parameters
+
+<ParamField body="userId" type="string" required>
+  User identifier from your system. Example: `user-123`.
+</ParamField>
+
+<ParamField body="campaignId" type="string" required>
+  Campaign ID that should evaluate the event. Example: `camp-abc`.
+</ParamField>
+
+<ParamField body="eventType" type="string" required>
+  Event type configured in the rule. Example: `card.purchase.completed`.
+</ParamField>
+
+<ParamField body="properties" type="object" default="{}">
+  Event data used by rule conditions. Example: `{ "value": 500 }`.
+</ParamField>
+
+<ParamField body="occurredAt" type="string" default="request receipt time">
+  ISO 8601 timestamp for when the event occurred.
+</ParamField>
+
+## Response
+
+<ResponseField name="triggered" type="array">
+  Mechanics triggered by the event. Empty when no rule matched.
+</ResponseField>
+
+<ResponseField name="triggered[].spinId" type="string">
+  ID of the triggered spin.
+</ResponseField>
+
+<ResponseField name="triggered[].campaignId" type="string">
+  Campaign ID that triggered the spin.
+</ResponseField>
+
+<ResponseField name="triggered[].ruleId" type="string">
+  Rule ID that triggered the spin.
+</ResponseField>
+
+<Note>
+  `track()` does not return the spin result. The result arrives through the `spin.completed` webhook.
+</Note>

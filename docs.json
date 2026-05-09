@@ -27,6 +27,19 @@
   },
   "favicon": "/favicon.ico",
   "navigation": {
+    "global": {
+      "languages": [
+        {
+          "language": "es",
+          "default": true,
+          "href": "/"
+        },
+        {
+          "language": "en",
+          "href": "/en"
+        }
+      ]
+    },
     "languages": [
       {
         "language": "es",
@@ -138,6 +151,78 @@
                 "pages": [
                   "en/index",
                   "en/quickstart"
+                ]
+              },
+              {
+                "group": "SDK",
+                "icon": "code",
+                "pages": [
+                  "en/sdk/introduction",
+                  "en/sdk/authentication",
+                  "en/sdk/campaigns",
+                  {
+                    "group": "Methods",
+                    "expanded": true,
+                    "pages": [
+                      "en/sdk/track",
+                      "en/sdk/spin",
+                      "en/sdk/get-state",
+                      "en/sdk/claim"
+                    ]
+                  },
+                  {
+                    "group": "Webhooks",
+                    "expanded": false,
+                    "pages": [
+                      "en/sdk/webhooks",
+                      "en/sdk/webhook-log"
+                    ]
+                  },
+                  {
+                    "group": "Errors",
+                    "expanded": false,
+                    "pages": [
+                      "en/sdk/errors"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "MCP",
+                "icon": "plug",
+                "pages": [
+                  "en/mcp/introduction",
+                  "en/mcp/authentication",
+                  {
+                    "group": "Tools",
+                    "expanded": true,
+                    "pages": [
+                      "en/mcp/analytics",
+                      "en/mcp/roulettes",
+                      "en/mcp/flows",
+                      "en/mcp/learning",
+                      "en/mcp/supply"
+                    ]
+                  },
+                  {
+                    "group": "Troubleshooting",
+                    "expanded": false,
+                    "pages": [
+                      "en/errors"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Reference",
+            "groups": [
+              {
+                "group": "Resources",
+                "icon": "clock",
+                "pages": [
+                  "en/changelog"
                 ]
               }
             ]

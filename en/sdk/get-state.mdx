@@ -1,0 +1,59 @@
+---
+title: "getState()"
+description: "Check eligibility, cooldowns, and pending claims"
+icon: "circle-info"
+---
+
+`getState()` checks a user's state in a campaign before attempting a spin.
+
+## Usage
+
+<CodeGroup>
+```typescript TypeScript
+const state = await nippy.getState({
+  userId: 'user-123',
+  campaignId: 'camp-abc'
+})
+```
+
+```bash curl
+curl "https://ms.nippy.la/v1/public/state?userId=user-123&campaignId=camp-abc" \
+  -H "x-api-key: npk_live_xxx"
+```
+</CodeGroup>
+
+## Parameters
+
+<ParamField query="userId" type="string" required>
+  User identifier from your system. Example: `user-123`.
+</ParamField>
+
+<ParamField query="campaignId" type="string" required>
+  Campaign ID. Example: `camp-abc`.
+</ParamField>
+
+## Response
+
+<ResponseField name="eligible" type="boolean">
+  Whether the user can spin right now.
+</ResponseField>
+
+<ResponseField name="ineligibilityReason" type="string | null">
+  Reason the user cannot spin. Values: `cooldown_active`, `spin_limit_reached`, `campaign_ended`, or `null`.
+</ResponseField>
+
+<ResponseField name="spinsUsed" type="number">
+  Number of spins used by the user in the campaign.
+</ResponseField>
+
+<ResponseField name="spinsAllowed" type="number">
+  Maximum allowed spins. `-1` means unlimited.
+</ResponseField>
+
+<ResponseField name="nextEligibleAt" type="string | null">
+  ISO 8601 timestamp when the user can spin again.
+</ResponseField>
+
+<ResponseField name="pendingClaim" type="object | null">
+  Pending prize claim, if one exists.
+</ResponseField>

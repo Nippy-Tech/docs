@@ -1,0 +1,67 @@
+---
+title: "Introduction"
+description: "B2B gamification engine for financial and benefits apps"
+icon: "bolt"
+---
+
+## What it is
+
+Nippy is a WorkerTech platform operating at scale in LATAM. The same gamification engine used in production for roulettes, points, and challenges is available as a B2B product for integration into your own app.
+
+**Design principle:** one engine, many shells. Your product integrates the SDK. Nippy handles rules, probabilities, inventory, prize delivery, and webhooks.
+
+You own the user experience. Nippy owns the engine behavior.
+
+## Use cases
+
+<CardGroup cols={3}>
+  <Card title="Transactional loyalty" icon="credit-card">
+    Reward purchases, payments, or any business event. For example, trigger a spin automatically when a purchase is greater than $500.
+  </Card>
+  <Card title="Gamified onboarding" icon="rocket">
+    Turn onboarding steps such as account opening, first deposit, or card activation into events that unlock mechanics.
+  </Card>
+  <Card title="Active retention" icon="repeat">
+    Use configurable cooldowns and spin limits to distribute engagement over time without overspending prize budget.
+  </Card>
+</CardGroup>
+
+## Architecture
+
+```text
+Your app
+   |
+   | npm install @nippy/sdk
+   v
+NippyClient
+   | track() spin() getState() claim()
+   v
+ms.nippy.la/v1/public/...
+   |
+   | signed webhooks
+   v
+Your webhook endpoint
+```
+
+## Activation modes
+
+| Mode | When to use it |
+|------|----------------|
+| Automatic with `track()` | A user triggers an event and Nippy evaluates campaign rules. |
+| Direct with `spin()` | Your app decides when to spin, usually after an explicit user action. |
+
+## What the SDK does not do
+
+- It does not render the animation. You control the UI.
+- It does not store the result. Persist it from the webhook.
+- It does not manage user identity. You pass the `userId` from your system.
+
+## Requirements
+
+- Node.js 18 or later
+- An API key with the `npk_live_` prefix
+- TypeScript 4.5+ recommended
+
+<Card title="Get started" icon="rocket" href="/en/quickstart#sdk">
+  Install the SDK, initialize the client, and run your first spin.
+</Card>

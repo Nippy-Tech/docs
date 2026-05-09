@@ -1,0 +1,62 @@
+---
+title: "Authentication"
+description: "API keys and how to use them with the SDK and direct API calls"
+icon: "key"
+---
+
+## API key format
+
+Nippy API keys use the `npk_live_` prefix followed by a random string:
+
+```text
+npk_live_a1b2c3d4e5f6...
+```
+
+Each key is tied to a specific business. The server resolves the business from the key automatically for SDK calls.
+
+<Warning>
+  Never expose your API key in client-side code, including browsers and mobile apps. Use it only from your backend.
+</Warning>
+
+## With the SDK
+
+Pass the key once when you create the client:
+
+```typescript
+import { NippyClient } from '@nippy/sdk'
+
+const nippy = new NippyClient({
+  apiKey: process.env.NIPPY_API_KEY,
+  baseUrl: 'https://ms.nippy.la'
+})
+```
+
+The SDK includes the key in each request automatically.
+
+## With direct REST calls
+
+For administration endpoints that do not go through the SDK, include the required headers:
+
+```http
+x-api-key: npk_live_xxx
+x-business-id: your-business-id
+```
+
+```bash
+curl https://ms.nippy.la/v1/public/campaigns \
+  -H "x-api-key: npk_live_xxx" \
+  -H "x-business-id: your-business-id"
+```
+
+## Authentication errors
+
+| HTTP status | Cause | Fix |
+|-------------|-------|-----|
+| `401 Unauthorized` | Invalid, expired, or missing key | Verify the `x-api-key` header. |
+| `403 Forbidden` | The key cannot access the requested resource | Confirm the business and permissions. |
+
+## Best practices
+
+- Store the key in `NIPPY_API_KEY`.
+- Rotate the key if you suspect it was compromised.
+- Use one `NippyClient` instance per process.

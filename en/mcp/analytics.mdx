@@ -1,0 +1,25 @@
+---
+title: "Analytics"
+description: "Query Nippy data in natural language"
+icon: "chart-bar"
+---
+
+Analytics tools let an MCP client query operational data across roulettes, supply, learning, and flows.
+
+## Common requests
+
+- Compare redeemed prizes this month vs last month.
+- Show active roulettes and conversion by campaign.
+- Find courses with the highest completion rate.
+- Summarize low-stock products by center.
+
+<Warning>
+  Do not include `businessId` in analytics pipelines. Nippy injects tenant scope from your API key.
+</Warning>
+
+## Recommended prompt pattern
+
+```text
+Compare roulette performance for the last 30 days.
+Group by roulette name and include spins, claims, and conversion rate.
+```

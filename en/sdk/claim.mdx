@@ -1,0 +1,60 @@
+---
+title: "claim()"
+description: "Confirm prizes that require an explicit claim"
+icon: "gift"
+---
+
+`claim()` completes delivery for prizes that are not credited automatically.
+
+## Usage
+
+<CodeGroup>
+```typescript TypeScript
+const result = await nippy.claim({
+  spinId: 'spin-abc',
+  userId: 'user-123'
+})
+```
+
+```bash curl
+curl -X POST https://ms.nippy.la/v1/public/claims \
+  -H "x-api-key: npk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spinId": "spin-abc",
+    "userId": "user-123"
+  }'
+```
+</CodeGroup>
+
+## Parameters
+
+<ParamField body="spinId" type="string" required>
+  ID of the spin that generated the prize. Example: `spin-abc`.
+</ParamField>
+
+<ParamField body="userId" type="string" required>
+  Must match the `userId` from the original spin. Example: `user-123`.
+</ParamField>
+
+## Response
+
+<ResponseField name="claimId" type="string">
+  Unique claim ID.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Claim status. Expected value: `claimed`.
+</ResponseField>
+
+<ResponseField name="gift" type="object">
+  Claimed prize.
+</ResponseField>
+
+<ResponseField name="claimedAt" type="string">
+  ISO 8601 timestamp when the claim was completed.
+</ResponseField>
+
+<Warning>
+  Reservations expire. If the user does not claim before `prizeReservation.expiresAt`, the prize is released back to campaign inventory.
+</Warning>

@@ -1,0 +1,72 @@
+---
+title: "Error handling"
+description: "SDK error codes and handling patterns"
+icon: "triangle-exclamation"
+---
+
+The SDK throws `NippyError` instances for expected operational errors. Use `NippyErrorCodes` to handle each case explicitly.
+
+<Warning>
+  Do not show internal error messages directly to users. Log `error.code`, `error.status`, and `error.traceId` for diagnostics.
+</Warning>
+
+## Base pattern
+
+```typescript
+import { NippyError, NippyErrorCodes } from '@nippy/sdk'
+
+try {
+  await nippy.spin({ userId, campaignId })
+} catch (error) {
+  if (!(error instanceof NippyError)) throw error
+
+  console.error(error.code, error.message, error.traceId)
+}
+```
+
+## Error codes
+
+<AccordionGroup>
+  <Accordion title="COOLDOWN_ACTIVE">
+    **Cause:** The user spun recently and the campaign cooldown is still active.
+
+    **Fix:** Call `getState()` and show `nextEligibleAt`.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.COOLDOWN_ACTIVE) {
+      const state = await nippy.getState({ userId, campaignId })
+      return { reason: 'cooldown', nextEligibleAt: state.nextEligibleAt }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="SPIN_LIMIT_REACHED">
+    **Cause:** The user used all allowed spins for the campaign.
+
+    **Fix:** Disable the spin action and show the current state.
+
+    ```typescript
+    if (error.code === NippyErrorCodes.SPIN_LIMIT_REACHED) {
+      return { reason: 'spin_limit_reached' }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="CAMPAIGN_NOT_FOUND">
+    **Cause:** The campaign does not exist, belongs to another business, or is inactive.
+
+    **Fix:** Verify the campaign ID and status before exposing it in your app.
+  </Accordion>
+
+  <Accordion title="UNAUTHORIZED">
+    **Cause:** The API key is missing or invalid.
+
+    **Fix:** Check `NIPPY_API_KEY` and confirm the key prefix.
+  </Accordion>
+
+  <Accordion title="SERVER_ERROR">
+    **Cause:** Nippy returned a 5xx error after automatic retries.
+
+    **Fix:** Log `traceId`, show a generic state, and retry later.
+  </Accordion>
+</AccordionGroup>

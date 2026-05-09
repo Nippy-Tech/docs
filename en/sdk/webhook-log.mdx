@@ -1,0 +1,22 @@
+---
+title: "Webhook log"
+description: "Review webhook delivery history for troubleshooting"
+icon: "list"
+---
+
+The webhook log helps diagnose delivery failures and retries.
+
+## Use it to check
+
+- Event type and timestamp
+- Delivery status
+- HTTP response code
+- Retry count
+- Error message returned by your endpoint
+
+## Common causes
+
+- Invalid signature verification because the body was parsed before verification
+- Endpoint returned a non-2xx response
+- Timeout while processing the webhook
+- Incorrect `webhookSecret`

@@ -1,0 +1,33 @@
+---
+title: "Webhooks"
+description: "Events Nippy sends to your backend"
+icon: "webhook"
+---
+
+Nippy sends signed webhooks when mechanics complete. Use them to persist results, credit rewards, and update your own systems.
+
+## Signature verification
+
+Verify the signature before processing the event.
+
+```typescript
+import { verifyWebhookSignature } from '@nippy/sdk'
+
+const isValid = verifyWebhookSignature({
+  body: rawBody,
+  signature: req.headers['x-nippy-signature'] as string,
+  secret: process.env.NIPPY_WEBHOOK_SECRET
+})
+```
+
+<Warning>
+  Verify against the raw request body. If you parse JSON first, signature verification can fail.
+</Warning>
+
+## Events
+
+| Event | When it fires |
+|-------|---------------|
+| `spin.completed` | A spin finished and selected an outcome. |
+| `claim.completed` | A prize claim was completed. |
+| `webhook.failed` | Delivery failed after retries. |

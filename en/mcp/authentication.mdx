@@ -1,0 +1,52 @@
+---
+title: "Authentication"
+description: "Authenticate with Nippy MCP using X-API-Key or OAuth Bearer JWT"
+icon: "key"
+---
+
+## Authentication methods
+
+Nippy MCP supports API key authentication and OAuth Bearer tokens. In both cases, the server resolves the tenant automatically. You never need to pass `business_id` to tools.
+
+## X-API-Key
+
+Use your Nippy API key in the `X-API-Key` header:
+
+```http
+POST /mcp
+X-API-Key: npk_your_api_key_here
+Content-Type: application/json
+```
+
+Keys with the `npk_*` prefix are tenant-bound keys. The server uses them to determine which business the request can access.
+
+## OAuth Bearer JWT
+
+Clients that implement OAuth can exchange credentials for an access token:
+
+```http
+POST /oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "your_client_id",
+  "client_secret": "npk_your_api_key_here"
+}
+```
+
+<Note>
+  For most Claude Desktop and Cursor integrations, use `X-API-Key` directly.
+</Note>
+
+## Multi-tenant isolation
+
+Every API key is tied to one business. Tools filter data by the resolved business automatically, including analytics queries.
+
+## Authentication errors
+
+| Code | Message | Cause |
+|------|---------|-------|
+| `401` | `Unauthorized` | Missing, invalid, or malformed `X-API-Key` |
+| `403` | `Forbidden` | Valid key without access to the requested resource |
+| `400` | `MCP tools require tenant-bound auth` | The key is not a tenant-bound `npk_*` key |

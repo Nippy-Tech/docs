@@ -1,0 +1,39 @@
+---
+title: "Campaigns"
+description: "Create campaigns, configure prizes, and define activation rules"
+icon: "flag"
+---
+
+Campaigns define who can spin, which prizes are available, and which rules trigger mechanics.
+
+## Core concepts
+
+- **Prizes:** points, digital rewards, physical rewards, or losing outcomes.
+- **Probabilities:** prize weights used by the draw engine.
+- **Cooldowns:** time windows that prevent repeated spins.
+- **Spin limits:** maximum spins per user or campaign.
+- **Rules:** business events that can trigger mechanics through `track()`.
+
+## Create a test campaign
+
+```bash
+curl -X POST https://ms.nippy.la/v1/public/campaigns \
+  -H "x-api-key: npk_live_xxx" \
+  -H "x-business-id: your-business-id" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test campaign",
+    "webhookUrl": "https://your-app.com/webhooks/nippy",
+    "webhookSecret": "secure-secret",
+    "spinsAllowed": 3,
+    "cooldownMinutes": 0,
+    "gifts": [
+      { "name": "500 points", "type": "won_points", "pointsValue": 500, "probability": 70 },
+      { "name": "Lose", "type": "lost", "probability": 30 }
+    ]
+  }'
+```
+
+<Warning>
+  Prize probabilities must add up to 100.
+</Warning>
