@@ -1,140 +1,122 @@
 ---
-mode: "wide"
 title: "Quickstart"
-description: "Conecta tu cliente MCP a Nippy en 3 pasos y empieza a hacer preguntas"
+description: "Conecta tu cliente MCP a Nippy en 3 pasos"
 icon: "rocket"
 ---
 
-## Paso 1: Consigue tu API key
+<Steps>
+  <Step title="Consigue tu API key">
+    La key de Nippy empieza con `npk_` y determina a qué negocio tienes acceso.
 
-La key de Nippy empieza con `npk_` y es lo que le dice al servidor quién eres y a qué negocio tienes acceso. No tienes que pasar IDs de empresa ni nada — la key ya sabe de cuál eres.
+    ```text
+    https://console.nippy.la/settings/api-keys
+    ```
 
-La obtienes desde la Consola:
+    <Note>
+      Tu key `npk_` da acceso a los datos de tu negocio. Trátala como una contraseña.
+    </Note>
+  </Step>
 
-```
-https://console.nippy.la/settings/api-keys
-```
+  <Step title="Agrega el servidor a tu cliente">
+    El endpoint MCP de Nippy es:
 
-<Note>
-  Tu key `npk_` te da acceso completo a los datos de tu negocio. Trátala como una contraseña: no la subas a GitHub, no la compartas.
-</Note>
+    ```text
+    https://ms.nippy.la/cognitive-layer/mcp
+    ```
 
-## Paso 2: Agrega el servidor a tu cliente
+    <Tabs>
+      <Tab title="Claude Desktop">
+        Abre tu archivo de configuración:
 
-Elige tu cliente y copia la config. En todos los casos el servidor está en:
+        **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-```
-https://ms.nippy.la/cognitive-layer/mcp
-```
+        **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-<AccordionGroup>
-  <Accordion icon="robot" title="Claude Desktop">
-    Abre tu archivo de configuración de Claude Desktop:
-
-    **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-    **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-
-    Pega esta config (cambiando la key por la tuya):
-
-    ```json
-    {
-      "mcpServers": {
-        "nippy": {
-          "url": "https://ms.nippy.la/cognitive-layer/mcp",
-          "headers": {
-            "X-API-Key": "npk_tu_api_key_aqui"
+        ```json
+        {
+          "mcpServers": {
+            "nippy": {
+              "url": "https://ms.nippy.la/cognitive-layer/mcp",
+              "headers": {
+                "X-API-Key": "npk_tu_api_key_aqui"
+              }
+            }
           }
         }
-      }
-    }
-    ```
+        ```
 
-    Reinicia Claude Desktop. Verás un ícono de martillo junto al chat — ahí están las tools.
+        Reinicia Claude Desktop y prueba con: "Muéstrame qué ruletas tengo activas".
+      </Tab>
 
-    **Para probar que funciona**, escribe en el chat:
+      <Tab title="Cursor">
+        Ve a **Settings** > **MCP** y agrega un nuevo servidor:
 
-    > "Muéstrame qué ruletas tengo activas"
-
-    Si todo está bien, Claude te responderá con la lista de ruletas de tu negocio.
-  </Accordion>
-  <Accordion icon="code" title="Cursor">
-    Ve a **Settings → MCP** y agrega un nuevo servidor:
-
-    ```json
-    {
-      "mcpServers": {
-        "nippy": {
-          "url": "https://ms.nippy.la/cognitive-layer/mcp",
-          "headers": {
-            "X-API-Key": "npk_tu_api_key_aqui"
+        ```json
+        {
+          "mcpServers": {
+            "nippy": {
+              "url": "https://ms.nippy.la/cognitive-layer/mcp",
+              "headers": {
+                "X-API-Key": "npk_tu_api_key_aqui"
+              }
+            }
           }
         }
-      }
-    }
-    ```
+        ```
 
-    Guarda y reinicia el workspace.
+        Guarda, reinicia el workspace y prueba con: "¿Cuántos flows de registro tengo y cuál es su tasa de conversión?".
+      </Tab>
 
-    **Para probar que funciona**, pregúntale al agente en Cursor:
+      <Tab title="OpenClaw">
+        Usa el mismo formato que Claude Desktop:
 
-    > "¿Cuántos flows de registro tengo y cuál es su tasa de conversión?"
-
-    El agente usará las tools de flows para traerte los números.
-  </Accordion>
-  <Accordion icon="terminal" title="OpenClaw">
-    Mismo formato que Claude Desktop. Agrega esto en tu archivo de configuración de OpenClaw:
-
-    ```json
-    {
-      "mcpServers": {
-        "nippy": {
-          "url": "https://ms.nippy.la/cognitive-layer/mcp",
-          "headers": {
-            "X-API-Key": "npk_tu_api_key_aqui"
+        ```json
+        {
+          "mcpServers": {
+            "nippy": {
+              "url": "https://ms.nippy.la/cognitive-layer/mcp",
+              "headers": {
+                "X-API-Key": "npk_tu_api_key_aqui"
+              }
+            }
           }
         }
-      }
-    }
-    ```
+        ```
 
-    **Para probar que funciona**, pregúntale:
+        Prueba con: "Dame un resumen de los cursos que tengo y cuántos alumnos lleva cada uno".
+      </Tab>
 
-    > "Dame un resumen de los cursos que tengo y cuántos alumnos lleva cada uno"
-  </Accordion>
-  <Accordion icon="gear" title="Hermes Agent">
-    Edita tu archivo `~/.hermes/config.yaml` y agrega:
+      <Tab title="Hermes Agent">
+        Edita `~/.hermes/config.yaml`:
 
-    ```yaml
-    mcp_servers:
-      nippy:
-        url: https://ms.nippy.la/cognitive-layer/mcp
-        headers:
-          X-API-Key: npk_tu_api_key_aqui
-    ```
+        ```yaml
+        mcp_servers:
+          nippy:
+            url: https://ms.nippy.la/cognitive-layer/mcp
+            headers:
+              X-API-Key: npk_tu_api_key_aqui
+        ```
 
-    **Para probar que funciona**, pregúntale:
+        Prueba con: "¿Hay productos con stock bajo? Muéstrame cuáles".
+      </Tab>
+    </Tabs>
+  </Step>
 
-    > "¿Hay productos con stock bajo? Muéstrame cuáles"
-  </Accordion>
-</AccordionGroup>
+  <Step title="Haz tu primera consulta">
+    Una vez conectado, el agente puede usar las tools disponibles para tu negocio.
 
-## Paso 3: Listo, ya puedes preguntar lo que quieras
+    Ejemplos:
 
-Una vez conectado, el agente tiene acceso a todas las tools de Nippy. No necesitas saber cómo se llaman ni qué parámetros usan — solo pide lo que necesitas en español y el agente decide qué tool usar.
+    - "¿Cuántos premios se canjearon este mes vs el mes pasado?"
+    - "Crea una ruleta de bienvenida con 3 premios: mochila, descuento del 10% y seguir participando"
+    - "¿Quiénes terminaron el curso de inducción esta semana?"
+    - "Registra una entrega de 5 camisetas a María en el centro de Monterrey"
+  </Step>
+</Steps>
 
-Algunas ideas para empezar:
+## Llamada directa
 
-- "¿Cuántos premios se canjearon este mes vs el mes pasado?"
-- "Crea una ruleta de bienvenida con 3 premios: mochila, descuento del 10% y seguir participando"
-- "¿Quiénes terminaron el curso de inducción esta semana?"
-- "Registra una entrega de 5 camisetas a María en el centro de Monterrey"
-
----
-mode: "wide"
-
-## Llamada directa (avanzado)
-
-Si prefieres invocar las tools manualmente, el servidor acepta JSON-RPC 2.0. Cada petición debe incluir el header `X-API-Key`:
+Si prefieres invocar las tools manualmente, el servidor acepta JSON-RPC 2.0. Cada petición debe incluir el header `X-API-Key`.
 
 ```bash
 curl -X POST https://ms.nippy.la/cognitive-layer/mcp \
@@ -147,57 +129,23 @@ curl -X POST https://ms.nippy.la/cognitive-layer/mcp \
   }'
 ```
 
-Para llamar una tool directamente:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "analytics_execute_pipeline",
-    "arguments": {
-      "collection": "roulettesMaterializedView",
-      "pipeline": [
-        {
-          "$match": {
-            "createdAt": {
-              "$gte": "2026-01-01T00:00:00Z",
-              "$lte": "2026-05-08T23:59:59Z"
-            }
-          }
-        },
-        {
-          "$group": {
-            "_id": null,
-            "total": {"$sum": 1}
-          }
-        }
-      ]
-    }
-  }
-}
-```
-
-<Note>
-  Nunca incluyas `businessId` en pipelines de analytics ni en ningún otro parámetro. El servidor lo inyecta automáticamente a partir de tu API key.
-</Note>
-
----
+<Warning>
+  Nunca incluyas `businessId` en pipelines de analytics ni en otros parámetros. El servidor lo inyecta automáticamente a partir de tu API key.
+</Warning>
 
 ## Siguientes pasos
 
 <CardGroup cols={2}>
   <Card title="Analytics" icon="chart-bar" href="/mcp/analytics">
-    Aprende qué datos puedes consultar y cómo pedir comparaciones entre períodos.
+    Consulta datos y compara métricas entre períodos.
   </Card>
   <Card title="Supply" icon="box" href="/mcp/supply">
-    Gestiona inventario, revisa alertas de stock bajo y registra entregas.
+    Gestiona inventario, alertas de stock y entregas.
   </Card>
   <Card title="Roulettes" icon="ticket" href="/mcp/roulettes">
-    Crea ruletas de premios para tus campañas de adquisición.
+    Crea y revisa ruletas de premios.
   </Card>
   <Card title="Flows" icon="route" href="/mcp/flows">
-    Arma landing pages de registro y mide cuánta gente convierte.
+    Administra landing pages de registro y conversión.
   </Card>
 </CardGroup>

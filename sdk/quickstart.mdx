@@ -1,122 +1,123 @@
 ---
-mode: "wide"
 title: "Quickstart"
 description: "Primer spin en menos de 30 minutos"
 icon: "rocket"
 ---
 
-Este guía asume que ya tienes una API key `npk_live_*`. Si no la tienes, escríbenos a soporte@nippy.la.
+Esta guía asume que ya tienes una API key `npk_live_*`. Si no la tienes, escríbenos a soporte@nippy.la.
 
-## Paso 1 — Instalar el SDK
+<Steps>
+  <Step title="Instala el SDK">
+    ```bash
+    npm install github:Nippy-Tech/gamification_nippy_sdk
+    ```
+  </Step>
 
-```bash
-npm install github:Nippy-Tech/gamification_nippy_sdk
-```
+  <Step title="Inicializa el cliente">
+    ```typescript
+    import { NippyClient } from '@nippy/sdk'
 
-## Paso 2 — Inicializar el cliente
+    const nippy = new NippyClient({
+      apiKey: process.env.NIPPY_API_KEY,   // npk_live_xxx
+      baseUrl: 'https://ms.nippy.la'
+    })
+    ```
 
-```typescript
-import { NippyClient } from '@nippy/sdk'
+    <Note>
+      Instancia `NippyClient` una sola vez y reutilízalo en toda tu app. Es thread-safe y gestiona reintentos automáticamente.
+    </Note>
+  </Step>
 
-const nippy = new NippyClient({
-  apiKey: process.env.NIPPY_API_KEY,   // npk_live_xxx
-  baseUrl: 'https://ms.nippy.la'
-})
-```
+  <Step title="Crea una campaña">
+    Las campañas se crean vía API directamente, no por el SDK. Llama este endpoint una vez para configurar tu primera campaña de prueba:
 
-<Note>
-  Instancia `NippyClient` una sola vez y reutilízalo en toda tu app. Es thread-safe y gestiona reintentos automáticamente.
-</Note>
+    ```bash
+    curl -X POST https://ms.nippy.la/v1/public/campaigns \
+      -H "x-api-key: npk_live_xxx" \
+      -H "x-business-id: tu-business-id" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Campaña de prueba",
+        "webhookUrl": "https://tu-app.com/webhooks/nippy",
+        "webhookSecret": "un-secret-seguro",
+        "spinsAllowed": 3,
+        "cooldownMinutes": 0,
+        "gifts": [
+          {
+            "name": "500 puntos",
+            "type": "won_points",
+            "pointsValue": 500,
+            "probability": 70
+          },
+          {
+            "name": "Perder",
+            "type": "lost",
+            "probability": 30
+          }
+        ]
+      }'
+    ```
 
-## Paso 3 — Crear una campaña
+    La respuesta incluye el `campaignId` que usarás en los siguientes pasos.
 
-Las campañas se crean via API directamente, no por el SDK. Llama este endpoint una vez para configurar tu primera campaña de prueba:
+    ```json
+    {
+      "campaignId": "camp-abc123",
+      "businessId": "tu-business-id",
+      "name": "Campaña de prueba",
+      "status": "active",
+      "createdAt": "2026-05-01T00:00:00.000Z"
+    }
+    ```
+  </Step>
 
-```bash
-curl -X POST https://ms.nippy.la/v1/public/campaigns \
-  -H "x-api-key: npk_live_xxx" \
-  -H "x-business-id: tu-business-id" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Campaña de prueba",
-    "webhookUrl": "https://tu-app.com/webhooks/nippy",
-    "webhookSecret": "un-secret-seguro",
-    "spinsAllowed": 3,
-    "cooldownMinutes": 0,
-    "gifts": [
-      {
-        "name": "500 puntos",
-        "type": "won_points",
-        "pointsValue": 500,
-        "probability": 70
-      },
-      {
-        "name": "Perder",
-        "type": "lost",
-        "probability": 30
+  <Step title="Ejecuta tu primer spin">
+    Con el `campaignId` en mano, haz tu primer spin:
+
+    ```typescript
+    const result = await nippy.spin({
+      userId: 'usuario-de-prueba-1',
+      campaignId: 'camp-abc123'
+    })
+
+    console.log(result.outcome)  // 'won_points' o 'lost'
+    console.log(result.gift)     // { name: '500 puntos', pointsValue: 500, ... }
+    ```
+  </Step>
+
+  <Step title="Recibe el webhook">
+    Nippy envía un webhook a tu `webhookUrl` cada vez que se completa un spin. Verifica la firma antes de procesar el resultado.
+
+    ```typescript
+    import { verifyWebhookSignature } from '@nippy/sdk'
+    import express from 'express'
+
+    const app = express()
+
+    app.post('/webhooks/nippy', express.raw({ type: 'application/json' }), (req, res) => {
+      const isValid = verifyWebhookSignature({
+        body: req.body.toString(),
+        signature: req.headers['x-nippy-signature'] as string,
+        secret: process.env.NIPPY_WEBHOOK_SECRET
+      })
+
+      if (!isValid) return res.status(401).send('Invalid signature')
+
+      const event = JSON.parse(req.body.toString())
+
+      if (event.event === 'spin.completed' && event.data.outcome === 'won_points') {
+        // acredita event.data.gift.pointsValue al event.data.userId
       }
-    ]
-  }'
-```
 
-La respuesta incluye el `campaignId` que usarás en los siguientes pasos:
+      res.status(200).send('ok')
+    })
+    ```
 
-```json
-{
-  "campaignId": "camp-abc123",
-  "businessId": "tu-business-id",
-  "name": "Campaña de prueba",
-  "status": "active",
-  "createdAt": "2026-05-01T00:00:00.000Z"
-}
-```
-
-## Paso 4 — Tu primer spin
-
-Con el `campaignId` en mano, haz tu primer spin:
-
-```typescript
-const result = await nippy.spin({
-  userId: 'usuario-de-prueba-1',
-  campaignId: 'camp-abc123'
-})
-
-console.log(result.outcome)  // 'won_points' o 'lost'
-console.log(result.gift)     // { name: '500 puntos', pointsValue: 500, ... }
-```
-
-## Paso 5 — Recibir el webhook
-
-Nippy envía un webhook a tu `webhookUrl` cada vez que se completa un spin. Aquí el handler mínimo para verificar la firma y procesar el resultado:
-
-```typescript
-import { verifyWebhookSignature } from '@nippy/sdk'
-import express from 'express'
-
-const app = express()
-
-app.post('/webhooks/nippy', express.raw({ type: 'application/json' }), (req, res) => {
-  const isValid = verifyWebhookSignature({
-    body: req.body.toString(),
-    signature: req.headers['x-nippy-signature'] as string,
-    secret: process.env.NIPPY_WEBHOOK_SECRET
-  })
-
-  if (!isValid) return res.status(401).send('Invalid signature')
-
-  const event = JSON.parse(req.body.toString())
-
-  if (event.event === 'spin.completed' && event.data.outcome === 'won_points') {
-    // acredita event.data.gift.pointsValue al event.data.userId
-  }
-
-  res.status(200).send('ok')
-})
-```
-
-<Note>
-  Usa `express.raw()`, no `express.json()`. La firma se verifica contra el body en crudo — si lo parseas antes, la verificación fallará.
-</Note>
+    <Note>
+      Usa `express.raw()`, no `express.json()`. La firma se verifica contra el body en crudo.
+    </Note>
+  </Step>
+</Steps>
 
 ## ¿Qué sigue?
 

@@ -1,39 +1,109 @@
 ---
-mode: "wide"
 title: "Errores comunes"
-description: "Qué significan los errores del MCP de Nippy y cómo resolverlos"
+description: "Errores del servidor MCP de Nippy y cómo resolverlos"
 icon: "circle-exclamation"
 ---
 
-## Códigos de error
+Todas las respuestas de error incluyen un campo `detail` con contexto específico.
 
-Todas las respuestas de error incluyen un campo `detail` con más contexto específico sobre qué falló. Si el error persiste, incluye ese detalle al reportarlo.
+<Warning>
+  Si reportas un error a soporte@nippy.la, incluye el `request_id`, el campo `detail` y la acción que estabas ejecutando.
+</Warning>
 
-| Código | Significado | Qué hacer |
-|--------|-------------|-----------|
-| `401` | API key inválida o faltante | Verifica que el header `X-API-Key` tenga el valor correcto. Asegúrate de que sea una key con prefijo `npk_`. |
-| `403` | Sin permisos para esta operación | Tu key no tiene acceso a esta vertical o acción. Revisa los permisos desde la Consola. |
-| `429` | Demasiadas solicitudes | Espera unos segundos y reintenta. Si es recurrente, distribuye las llamadas en el tiempo. |
-| `500` | Error interno del servidor | Reporta a `soporte@nippy.la` incluyendo el `request_id` de la respuesta y qué estabas haciendo. |
+## Códigos HTTP
 
-<Note>
-  Todos los errores devuelven un campo `detail` con más contexto. Por ejemplo, un 401 puede decir `"X-API-Key header missing"` si olvidaste el header, o `"Invalid API key"` si la key está mal escrita.
-</Note>
+<AccordionGroup>
+  <Accordion title="401 Unauthorized">
+    **Causa:** La API key falta, está mal escrita o no usa el prefijo `npk_`.
 
-## Errores comunes en tools
+    **Solución:** Envía el header `X-API-Key` con una key válida.
 
-### "MCP tools require tenant-bound auth"
+    ```bash
+    curl https://ms.nippy.la/cognitive-layer/mcp \
+      -H "X-API-Key: npk_tu_api_key_aqui"
+    ```
+  </Accordion>
 
-Tu API key no es de tipo `npk_*`. Estás usando una key que no está ligada a un negocio específico. Asegúrate de usar la key que obtuviste en `https://console.nippy.la/settings/api-keys`.
+  <Accordion title="403 Forbidden">
+    **Causa:** La key no tiene permisos para la vertical, tool o recurso solicitado.
 
-### Sin resultados en una consulta de Analytics
+    **Solución:** Revisa permisos desde la consola y confirma que el recurso pertenece a tu negocio.
 
-Puede ser que no haya datos para el rango de fechas que pediste, o que el área de datos que elegiste no tenga información de ese tipo. Prueba con un rango más amplio o confirma que el área de datos es la correcta.
+    ```json
+    {
+      "error": "forbidden",
+      "detail": "Key does not have access to this tool"
+    }
+    ```
+  </Accordion>
 
-### "Roulette not found or does not belong to this business"
+  <Accordion title="429 Too Many Requests">
+    **Causa:** El cliente envió demasiadas solicitudes en poco tiempo.
 
-El ID de ruleta que pasaste no existe, o pertenece a otro negocio. Usa `roulettes_list_roulettes` para obtener los IDs de tus ruletas.
+    **Solución:** Espera unos segundos y distribuye las llamadas en el tiempo.
 
-### Error de validación en retiros de Supply
+    ```typescript
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    ```
+  </Accordion>
 
-El servidor valida que el centro y el producto pertenezcan a tu negocio, y que haya suficiente stock. Si ves un error, verifica los IDs con `supply_list_nippy_centers` y `supply_list_nippy_center_stocks` antes de reintentar.
+  <Accordion title="500 Internal Server Error">
+    **Causa:** Ocurrió un error interno al ejecutar la solicitud.
+
+    **Solución:** Reintenta más tarde. Si persiste, reporta el `request_id`.
+
+    ```json
+    {
+      "error": "internal_server_error",
+      "request_id": "req_abc123"
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Errores comunes de tools
+
+<AccordionGroup>
+  <Accordion title="MCP tools require tenant-bound auth">
+    **Causa:** La key no está ligada a un negocio específico.
+
+    **Solución:** Usa una API key `npk_*` creada desde `https://console.nippy.la/settings/api-keys`.
+
+    ```text
+    X-API-Key: npk_tu_api_key_aqui
+    ```
+  </Accordion>
+
+  <Accordion title="Sin resultados en Analytics">
+    **Causa:** No hay datos para el rango de fechas o el área consultada no contiene ese tipo de información.
+
+    **Solución:** Prueba con un rango más amplio y confirma que la colección consultada sea la correcta.
+
+    ```json
+    {
+      "collection": "roulettesMaterializedView",
+      "dateRange": "last_90_days"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Roulette not found or does not belong to this business">
+    **Causa:** El ID de ruleta no existe o pertenece a otro negocio.
+
+    **Solución:** Usa `roulettes_list_roulettes` para obtener IDs válidos.
+
+    ```text
+    Lista mis ruletas activas y sus IDs
+    ```
+  </Accordion>
+
+  <Accordion title="Error de validación en retiros de Supply">
+    **Causa:** El centro, producto o stock no cumple las validaciones del servidor.
+
+    **Solución:** Verifica IDs con `supply_list_nippy_centers` y `supply_list_nippy_center_stocks` antes de reintentar.
+
+    ```text
+    Muéstrame el stock disponible por centro antes de registrar el retiro
+    ```
+  </Accordion>
+</AccordionGroup>

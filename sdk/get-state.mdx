@@ -1,104 +1,71 @@
 ---
-mode: "wide"
 title: "getState()"
-description: "Consulta el estado actual de un usuario en una campaña antes de intentar girar"
+description: "Consulta elegibilidad, cooldowns y claims pendientes"
 icon: "circle-info"
 ---
 
-`getState()` te dice si un usuario puede girar en este momento, cuántos spins le quedan, y si tiene algún premio pendiente de reclamar. Llámalo antes de mostrar el botón de girar para dar feedback correcto al usuario.
+`getState()` consulta el estado de un usuario en una campaña antes de intentar girar.
 
 ## Uso
 
-```typescript
+<CodeGroup>
+```typescript TypeScript
 const state = await nippy.getState({
   userId: 'user-123',
   campaignId: 'camp-abc'
 })
-
-if (state.eligible) {
-  showSpinButton()
-} else {
-  showIneligibilityMessage(state.ineligibilityReason, state.nextEligibleAt)
-}
 ```
+
+```bash curl
+curl "https://ms.nippy.la/v1/public/state?userId=user-123&campaignId=camp-abc" \
+  -H "x-api-key: npk_live_xxx"
+```
+</CodeGroup>
 
 ## Parámetros
 
-<ParamField body="userId" type="string" required>
-  Identificador del usuario en tu sistema.
+<ParamField query="userId" type="string" required>
+  Identificador del usuario en tu sistema. Ejemplo: `user-123`.
 </ParamField>
 
-<ParamField body="campaignId" type="string" required>
-  ID de la campaña.
+<ParamField query="campaignId" type="string" required>
+  ID de la campaña. Ejemplo: `camp-abc`.
 </ParamField>
 
-## Respuesta — UserState
+## Respuesta
 
-```typescript
-{
-  eligible: boolean
+<ResponseField name="eligible" type="boolean">
+  Indica si el usuario puede girar en este momento.
+</ResponseField>
 
-  ineligibilityReason:
-    | 'cooldown_active'
-    | 'spin_limit_reached'
-    | 'campaign_ended'
-    | null
+<ResponseField name="ineligibilityReason" type="string | null">
+  Razón por la que el usuario no puede girar. Valores: `cooldown_active`, `spin_limit_reached`, `campaign_ended` o `null`.
+</ResponseField>
 
-  spinsUsed: number
-  spinsAllowed: number      // -1 si la campaña es ilimitada
+<ResponseField name="spinsUsed" type="number">
+  Cantidad de spins usados por el usuario en la campaña.
+</ResponseField>
 
-  nextEligibleAt: string | null   // ISO 8601 — cuándo puede girar de nuevo
+<ResponseField name="spinsAllowed" type="number">
+  Cantidad máxima de spins permitidos. `-1` indica spins ilimitados.
+</ResponseField>
 
-  pendingClaim: {
-    spinId: string
-    gift: {
-      giftId: string
-      name: string
-      type: string
-    }
-    expiresAt: string   // ISO 8601 — fecha límite para reclamar
-  } | null
-}
-```
+<ResponseField name="nextEligibleAt" type="string | null">
+  Timestamp ISO 8601 en el que el usuario podrá girar de nuevo.
+</ResponseField>
 
-## Razones de inelegibilidad
+<ResponseField name="pendingClaim" type="object | null">
+  Premio pendiente de reclamar, si existe.
+</ResponseField>
 
-| Valor | Qué muestra al usuario |
-|-------|----------------------|
-| `cooldown_active` | "Puedes girar de nuevo en X minutos" — usa `nextEligibleAt` para calcular el tiempo |
-| `spin_limit_reached` | "Ya usaste todos tus giros de esta campaña" |
-| `campaign_ended` | "Esta campaña ya terminó" |
-| `null` | El usuario es elegible — `eligible: true` |
+<ResponseField name="pendingClaim.spinId" type="string">
+  ID del spin asociado al claim pendiente.
+</ResponseField>
 
-## Patrón recomendado al abrir la pantalla de la ruleta
+<ResponseField name="pendingClaim.gift" type="object">
+  Premio pendiente de reclamar.
+</ResponseField>
 
-```typescript
-const state = await nippy.getState({ userId, campaignId })
-
-// Premio pendiente de reclamar
-if (state.pendingClaim) {
-  const { spinId, gift, expiresAt } = state.pendingClaim
-  showPendingClaimUI({ spinId, gift, expiresAt })
-  return
-}
-
-// En cooldown
-if (state.ineligibilityReason === 'cooldown_active' && state.nextEligibleAt) {
-  const msUntilEligible = new Date(state.nextEligibleAt).getTime() - Date.now()
-  showCooldownTimer(msUntilEligible)
-  return
-}
-
-// Sin spins restantes
-if (state.ineligibilityReason === 'spin_limit_reached') {
-  showSpinsExhaustedUI()
-  return
-}
-
-// Elegible — mostrar botón de girar
-const spinsRemaining = state.spinsAllowed === -1
-  ? 'ilimitados'
-  : state.spinsAllowed - state.spinsUsed
-
-showSpinButton({ spinsRemaining })
-```
+<ResponseField name="pendingClaim.expiresAt" type="string">
+  Fecha límite para reclamar el premio.
+</ResponseField>

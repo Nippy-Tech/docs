@@ -1,111 +1,76 @@
 ---
-mode: "wide"
 title: "claim()"
-description: "Confirma la entrega de un premio físico o digital que requiere reclamación explícita"
+description: "Confirma premios que requieren reclamación explícita"
 icon: "gift"
 ---
 
-`claim()` finaliza la entrega de premios que no se acreditan automáticamente. Cuando un spin resulta en un premio con `prizeReservation.claimRequired === true`, el premio queda reservado hasta que el usuario lo reclame explícitamente.
-
-## Cuándo usar claim()
-
-No todos los premios requieren `claim()`:
-
-| Tipo de premio | Requiere claim() |
-|----------------|-----------------|
-| `won_points` | No — los puntos se acreditan vía webhook automáticamente |
-| `lost` | No |
-| `won_digital` | Depende de la configuración de la campaña |
-| `won_physical` | Sí — siempre requiere confirmación |
-
-Después de un spin, revisa `result.prizeReservation.claimRequired`:
-
-```typescript
-const spin = await nippy.spin({ userId, campaignId })
-
-if (spin.prizeReservation?.claimRequired) {
-  // muestra UI de confirmación al usuario
-  // guarda spin.spinId para el claim posterior
-}
-```
+`claim()` finaliza la entrega de premios que no se acreditan automáticamente.
 
 ## Uso
 
-```typescript
+<CodeGroup>
+```typescript TypeScript
 const result = await nippy.claim({
-  spinId: 'spin-id-del-resultado-anterior',
+  spinId: 'spin-abc',
   userId: 'user-123'
 })
-
-console.log(result.status)     // 'claimed'
-console.log(result.claimedAt)  // ISO 8601
 ```
+
+```bash curl
+curl -X POST https://ms.nippy.la/v1/public/claims \
+  -H "x-api-key: npk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spinId": "spin-abc",
+    "userId": "user-123"
+  }'
+```
+</CodeGroup>
 
 ## Parámetros
 
 <ParamField body="spinId" type="string" required>
-  El `spinId` del resultado del `spin()` que generó el premio. También disponible en `getState().pendingClaim.spinId`.
+  ID del spin que generó el premio. Ejemplo: `spin-abc`.
 </ParamField>
 
 <ParamField body="userId" type="string" required>
-  Debe coincidir con el `userId` del spin original.
+  Debe coincidir con el `userId` del spin original. Ejemplo: `user-123`.
 </ParamField>
 
-## Respuesta — ClaimResult
+## Respuesta
 
-```typescript
-{
-  claimId: string
-  status: 'claimed'
-  gift: {
-    giftId: string
-    name: string
-    type: string
-    pointsValue: number | null
-  }
-  claimedAt: string   // ISO 8601
-}
-```
+<ResponseField name="claimId" type="string">
+  ID único del claim.
+</ResponseField>
 
-Nippy también envía el webhook `claim.completed` con el mismo contenido.
+<ResponseField name="status" type="string">
+  Estado del claim. Valor esperado: `claimed`.
+</ResponseField>
 
-## Errores comunes
+<ResponseField name="gift" type="object">
+  Premio reclamado.
+</ResponseField>
 
-| Error | Causa |
-|-------|-------|
-| `ALREADY_CLAIMED` | El premio ya fue reclamado — no es necesario volver a llamar |
-| `RESERVATION_EXPIRED` | El usuario no reclamó antes de `prizeReservation.expiresAt` — el premio se liberó |
+<ResponseField name="gift.giftId" type="string">
+  ID del premio reclamado.
+</ResponseField>
+
+<ResponseField name="gift.name" type="string">
+  Nombre del premio reclamado.
+</ResponseField>
+
+<ResponseField name="gift.type" type="string">
+  Tipo de premio. Ejemplos: `won_digital`, `won_physical`.
+</ResponseField>
+
+<ResponseField name="gift.pointsValue" type="number | null">
+  Puntos asociados al premio, si aplica.
+</ResponseField>
+
+<ResponseField name="claimedAt" type="string">
+  Timestamp ISO 8601 en el que se completó el claim.
+</ResponseField>
 
 <Warning>
-  Las reservas tienen una fecha de expiración (`prizeReservation.expiresAt`). Si el usuario no reclama antes de esa fecha, el premio se libera y vuelve al inventario de la campaña. Muestra siempre un contador de tiempo en tu UI.
+  Las reservas tienen fecha de expiración. Si el usuario no reclama antes de `prizeReservation.expiresAt`, el premio se libera y vuelve al inventario.
 </Warning>
-
-## Flujo completo con claim
-
-```typescript
-// 1. Usuario gira
-const spin = await nippy.spin({ userId, campaignId })
-
-// 2. Mostrar animación
-await animateRoulette(spin.animation)
-
-// 3. Si requiere claim, mostrar UI con countdown
-if (spin.prizeReservation?.claimRequired) {
-  const confirmed = await showClaimConfirmation({
-    gift: spin.gift,
-    expiresAt: spin.prizeReservation.expiresAt
-  })
-
-  if (confirmed) {
-    // 4. Usuario confirma — reclamar
-    const claim = await nippy.claim({
-      spinId: spin.spinId,
-      userId
-    })
-    showSuccess(claim.gift)
-  }
-} else {
-  // Premio automático — solo mostrar resultado
-  showResult(spin.gift)
-}
-```

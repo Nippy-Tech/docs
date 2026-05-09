@@ -1,108 +1,98 @@
 ---
-mode: "wide"
 title: "spin()"
-description: "Gira directamente para un usuario y obtén el resultado de forma síncrona"
+description: "Ejecuta un giro inmediato y obtiene el resultado de forma síncrona"
 icon: "rotate"
 ---
 
-`spin()` ejecuta un giro inmediato y devuelve el resultado completo de forma síncrona. Usa este método cuando tu UI necesita mostrar la animación y el premio en el mismo flujo.
+`spin()` ejecuta un giro inmediato para un usuario y devuelve el resultado completo.
 
 ## Uso
 
-```typescript
+<CodeGroup>
+```typescript TypeScript
 const result = await nippy.spin({
   userId: 'user-123',
-  campaignId: 'camp-abc'
+  campaignId: 'camp-abc',
+  idempotencyKey: 'checkout-789'
 })
-
-console.log(result.outcome)      // 'won_points'
-console.log(result.gift.name)    // '500 puntos'
-console.log(result.animation)    // { seed, durationMs, targetAngle }
 ```
+
+```bash curl
+curl -X POST https://ms.nippy.la/v1/public/spins \
+  -H "x-api-key: npk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "user-123",
+    "campaignId": "camp-abc",
+    "idempotencyKey": "checkout-789"
+  }'
+```
+</CodeGroup>
 
 ## Parámetros
 
 <ParamField body="userId" type="string" required>
-  Identificador del usuario en tu sistema.
+  Identificador del usuario en tu sistema. Ejemplo: `user-123`.
 </ParamField>
 
 <ParamField body="campaignId" type="string" required>
-  ID de la campaña.
+  ID de la campaña. Ejemplo: `camp-abc`.
 </ParamField>
 
-<ParamField body="idempotencyKey" type="string">
-  Clave de idempotencia para evitar spins duplicados en caso de reintentos de red. Si no se pasa, el SDK genera uno automáticamente. Úsalo si tienes tu propio mecanismo de reintentos.
+<ParamField body="idempotencyKey" type="string" default="generado por el SDK">
+  Clave para evitar spins duplicados en reintentos. Ejemplo: `checkout-789`.
 </ParamField>
 
-## Respuesta — SpinResult
+## Respuesta
 
-```typescript
-{
-  spinId: string
-  outcome: 'won_points' | 'lost' | 'won_digital' | 'won_physical'
+<ResponseField name="spinId" type="string">
+  ID único del spin.
+</ResponseField>
 
-  gift: {
-    giftId: string
-    name: string
-    type: string
-    pointsValue: number | null   // presente si outcome === 'won_points'
-    imageUrl: string | null
-    expiresAt: string | null     // ISO 8601
-  }
+<ResponseField name="outcome" type="string">
+  Resultado del giro. Valores comunes: `won_points`, `lost`, `won_digital`, `won_physical`.
+</ResponseField>
 
-  animation: {
-    seed: number         // para reproducir la misma animación determinísticamente
-    durationMs: number   // duración recomendada de la animación
-    targetAngle: number  // ángulo final de la ruleta en grados (0-360)
-  }
+<ResponseField name="gift" type="object">
+  Premio seleccionado por el spin.
+</ResponseField>
 
-  inventory: {
-    remaining: number    // stock restante del premio ganado (-1 si ilimitado)
-  }
+<ResponseField name="gift.giftId" type="string">
+  ID del premio.
+</ResponseField>
 
-  prizeReservation: {
-    reservationId: string
-    expiresAt: string    // ISO 8601 — tienes hasta aquí para hacer claim()
-    claimRequired: boolean
-  } | null
-}
-```
+<ResponseField name="gift.name" type="string">
+  Nombre visible del premio.
+</ResponseField>
 
-## Cómo usar la animación
+<ResponseField name="gift.pointsValue" type="number | null">
+  Puntos otorgados cuando `outcome` es `won_points`.
+</ResponseField>
 
-El SDK no renderiza nada — tú controlas la UI. Los campos de `animation` te dan todo lo que necesitas para mostrar una ruleta determinística:
+<ResponseField name="animation" type="object">
+  Datos para reproducir una animación determinística.
+</ResponseField>
 
-```typescript
-const result = await nippy.spin({ userId, campaignId })
+<ResponseField name="animation.seed" type="number">
+  Semilla usada para reproducir la animación.
+</ResponseField>
 
-// Muestra la animación de la ruleta
-await runRouletteAnimation({
-  seed: result.animation.seed,
-  duration: result.animation.durationMs,
-  targetAngle: result.animation.targetAngle
-})
+<ResponseField name="animation.durationMs" type="number">
+  Duración recomendada de la animación en milisegundos.
+</ResponseField>
 
-// Cuando termina, muestra el premio
-showPrize(result.gift)
-```
+<ResponseField name="animation.targetAngle" type="number">
+  Ángulo final recomendado de la ruleta.
+</ResponseField>
 
-## Premios que requieren claim
+<ResponseField name="inventory.remaining" type="number">
+  Stock restante del premio. `-1` indica inventario ilimitado.
+</ResponseField>
 
-Algunos premios físicos requieren confirmación explícita antes de entregarse. Cuando `prizeReservation.claimRequired === true`, debes llamar `claim()` antes de que expire la reserva:
+<ResponseField name="prizeReservation" type="object | null">
+  Reserva del premio cuando requiere `claim()`.
+</ResponseField>
 
-```typescript
-const result = await nippy.spin({ userId, campaignId })
-
-if (result.prizeReservation?.claimRequired) {
-  // guarda el spinId y pide confirmación al usuario
-  // luego llama nippy.claim({ spinId: result.spinId, userId })
-}
-```
-
-## Errores comunes
-
-| Error | Causa |
-|-------|-------|
-| `COOLDOWN_ACTIVE` | El usuario debe esperar antes de girar de nuevo. Usa `getState()` para saber cuánto |
-| `SPIN_LIMIT_REACHED` | El usuario agotó sus spins permitidos en esta campaña |
-| `CAMPAIGN_NOT_FOUND` | La campaña no existe o está inactiva |
+<ResponseField name="prizeReservation.claimRequired" type="boolean">
+  Indica si debes llamar `claim()` para completar la entrega.
+</ResponseField>
