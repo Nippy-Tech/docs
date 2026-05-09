@@ -44,6 +44,7 @@
       {
         "language": "es",
         "default": true,
+        "hidden": true,
         "tabs": [
           {
             "tab": "Documentación",
@@ -141,6 +142,7 @@
       },
       {
         "language": "en",
+        "hidden": true,
         "tabs": [
           {
             "tab": "Docs",
