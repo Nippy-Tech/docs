@@ -27,75 +27,99 @@
   },
   "favicon": "/favicon.ico",
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Docs",
-        "groups": [
+        "language": "es",
+        "default": true,
+        "tabs": [
           {
-            "group": "Start here",
-            "icon": "house",
-            "pages": [
-              "index",
-              "sdk/quickstart",
-              "mcp/quickstart"
-            ]
-          },
-          {
-            "group": "SDK",
-            "icon": "code",
-            "pages": [
-              "sdk/introduction",
-              "sdk/authentication",
-              "sdk/campaigns",
+            "tab": "Documentación",
+            "groups": [
               {
-                "group": "Methods",
-                "expanded": true,
+                "group": "Inicio",
+                "icon": "house",
                 "pages": [
-                  "sdk/track",
-                  "sdk/spin",
-                  "sdk/get-state",
-                  "sdk/claim"
+                  "index",
+                  "quickstart"
                 ]
               },
               {
-                "group": "Webhooks",
-                "expanded": false,
+                "group": "SDK",
+                "icon": "code",
                 "pages": [
-                  "sdk/webhooks",
-                  "sdk/webhook-log"
+                  "sdk/introduction",
+                  "sdk/authentication",
+                  "sdk/campaigns",
+                  {
+                    "group": "Métodos",
+                    "expanded": true,
+                    "pages": [
+                      "sdk/track",
+                      "sdk/spin",
+                      "sdk/get-state",
+                      "sdk/claim"
+                    ]
+                  },
+                  {
+                    "group": "Webhooks",
+                    "expanded": false,
+                    "pages": [
+                      "sdk/webhooks",
+                      "sdk/webhook-log"
+                    ]
+                  },
+                  {
+                    "group": "Errores",
+                    "expanded": false,
+                    "pages": [
+                      "sdk/errors"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Errors",
-                "expanded": false,
+                "group": "MCP",
+                "icon": "plug",
                 "pages": [
-                  "sdk/errors"
+                  "mcp/introduction",
+                  "mcp/authentication",
+                  {
+                    "group": "Tools",
+                    "expanded": true,
+                    "pages": [
+                      "mcp/analytics",
+                      "mcp/roulettes",
+                      "mcp/flows",
+                      "mcp/learning",
+                      "mcp/supply"
+                    ]
+                  },
+                  {
+                    "group": "Diagnóstico",
+                    "expanded": false,
+                    "pages": [
+                      "errors"
+                    ]
+                  }
                 ]
               }
             ]
           },
           {
-            "group": "MCP",
-            "icon": "plug",
-            "pages": [
-              "mcp/introduction",
-              "mcp/authentication",
+            "tab": "Referencia",
+            "groups": [
               {
-                "group": "Tools",
-                "expanded": true,
+                "group": "API Reference",
+                "icon": "book-open",
                 "pages": [
-                  "mcp/analytics",
-                  "mcp/roulettes",
-                  "mcp/flows",
-                  "mcp/learning",
-                  "mcp/supply"
+                  "api-reference/introduction"
                 ]
               },
               {
-                "group": "Troubleshooting",
-                "expanded": false,
+                "group": "Recursos",
+                "icon": "clock",
                 "pages": [
-                  "errors"
+                  "changelog"
                 ]
               }
             ]
@@ -103,20 +127,19 @@
         ]
       },
       {
-        "tab": "Reference",
-        "groups": [
+        "language": "en",
+        "tabs": [
           {
-            "group": "API Reference",
-            "icon": "book-open",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Resources",
-            "icon": "clock",
-            "pages": [
-              "changelog"
+            "tab": "Docs",
+            "groups": [
+              {
+                "group": "Start here",
+                "icon": "house",
+                "pages": [
+                  "en/index",
+                  "en/quickstart"
+                ]
+              }
             ]
           }
         ]

@@ -1,0 +1,91 @@
+---
+title: "Quickstart"
+description: "Choose SDK or MCP to get started with Nippy"
+icon: "rocket"
+---
+
+# Quickstart
+
+Nippy has two integration surfaces. Use the SDK when your product needs to run gamification mechanics. Use MCP when an agent or compatible client needs to operate Nippy tools.
+
+## SDK
+
+The SDK is the path for integrating campaigns, spins, claims, and webhooks into your application.
+
+<Steps>
+  <Step title="Install the SDK">
+    ```bash
+    npm install github:Nippy-Tech/gamification_nippy_sdk
+    ```
+  </Step>
+
+  <Step title="Initialize the client">
+    ```typescript
+    import { NippyClient } from '@nippy/sdk'
+
+    const nippy = new NippyClient({
+      apiKey: process.env.NIPPY_API_KEY,
+      baseUrl: 'https://ms.nippy.la'
+    })
+    ```
+  </Step>
+
+  <Step title="Run a spin">
+    ```typescript
+    const result = await nippy.spin({
+      userId: 'user-123',
+      campaignId: 'camp-abc'
+    })
+    ```
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="SDK reference" icon="book-open" href="/quickstart#sdk">
+    Continue with the Spanish reference while the English SDK section is translated.
+  </Card>
+  <Card title="Authentication" icon="key" href="/sdk/authentication">
+    Review API keys and headers for SDK calls.
+  </Card>
+</CardGroup>
+
+## MCP
+
+MCP is the path for connecting clients like Claude Desktop, Cursor, OpenClaw, or Hermes Agent to the Nippy server.
+
+<Steps>
+  <Step title="Get your API key">
+    Create a key with the `npk_` prefix from the console.
+
+    ```text
+    https://console.nippy.la/settings/api-keys
+    ```
+  </Step>
+
+  <Step title="Configure the MCP server">
+    Use this endpoint in your MCP client:
+
+    ```text
+    https://ms.nippy.la/cognitive-layer/mcp
+    ```
+  </Step>
+
+  <Step title="Add the authentication header">
+    ```json
+    {
+      "headers": {
+        "X-API-Key": "npk_your_api_key_here"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="MCP reference" icon="terminal" href="/mcp/quickstart">
+    Continue with the Spanish MCP guide while the English MCP section is translated.
+  </Card>
+  <Card title="Available tools" icon="plug" href="/mcp/analytics">
+    Query analytics, roulettes, flows, learning, and supply.
+  </Card>
+</CardGroup>

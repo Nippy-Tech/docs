@@ -1,0 +1,102 @@
+---
+title: "Quickstart"
+description: "Elige entre SDK y MCP para empezar con Nippy"
+icon: "rocket"
+---
+
+# Quickstart
+
+Nippy tiene dos superficies de integración. Usa el SDK cuando tu producto necesita ejecutar mecánicas de gamificación. Usa MCP cuando un agente o cliente compatible necesita operar herramientas de Nippy.
+
+## SDK
+
+El SDK es la ruta para integrar campañas, spins, claims y webhooks en tu aplicación.
+
+<Steps>
+  <Step title="Instala el SDK">
+    ```bash
+    npm install github:Nippy-Tech/gamification_nippy_sdk
+    ```
+  </Step>
+
+  <Step title="Inicializa el cliente">
+    ```typescript
+    import { NippyClient } from '@nippy/sdk'
+
+    const nippy = new NippyClient({
+      apiKey: process.env.NIPPY_API_KEY,
+      baseUrl: 'https://ms.nippy.la'
+    })
+    ```
+  </Step>
+
+  <Step title="Ejecuta un spin">
+    ```typescript
+    const result = await nippy.spin({
+      userId: 'user-123',
+      campaignId: 'camp-abc'
+    })
+    ```
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart completo del SDK" icon="book-open" href="/sdk/quickstart">
+    Crea una campaña de prueba, ejecuta un spin y recibe el webhook.
+  </Card>
+  <Card title="Referencia de métodos" icon="code" href="/sdk/track">
+    Revisa `track()`, `spin()`, `getState()` y `claim()`.
+  </Card>
+</CardGroup>
+
+## MCP
+
+MCP es la ruta para conectar clientes como Claude Desktop, Cursor, OpenClaw o Hermes Agent al servidor de Nippy.
+
+<Steps>
+  <Step title="Consigue tu API key">
+    Crea una key con prefijo `npk_` desde la consola.
+
+    ```text
+    https://console.nippy.la/settings/api-keys
+    ```
+  </Step>
+
+  <Step title="Configura el servidor MCP">
+    Usa este endpoint en tu cliente MCP:
+
+    ```text
+    https://ms.nippy.la/cognitive-layer/mcp
+    ```
+  </Step>
+
+  <Step title="Agrega el header de autenticación">
+    ```json
+    {
+      "headers": {
+        "X-API-Key": "npk_tu_api_key_aqui"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart completo de MCP" icon="terminal" href="/mcp/quickstart">
+    Configura Claude Desktop, Cursor, OpenClaw o Hermes Agent.
+  </Card>
+  <Card title="Tools disponibles" icon="plug" href="/mcp/analytics">
+    Consulta analytics, ruletas, flows, learning y supply.
+  </Card>
+</CardGroup>
+
+## Siguiente paso
+
+<CardGroup cols={2}>
+  <Card title="Autenticación SDK" icon="key" href="/sdk/authentication">
+    Revisa API keys y headers para llamadas desde tu aplicación.
+  </Card>
+  <Card title="Autenticación MCP" icon="key-round" href="/mcp/authentication">
+    Revisa cómo autenticar clientes MCP con `X-API-Key`.
+  </Card>
+</CardGroup>
