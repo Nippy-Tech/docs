@@ -26,6 +26,20 @@
     }
   },
   "favicon": "/favicon.ico",
+  "openGraph": {
+    "image": "/images/og.jpg"
+  },
+  "seo": {
+    "metatags": {
+      "og:title": "Nippy API Platform",
+      "og:description": "El engine de gamificación que opera con 700K+ trabajadores en LATAM. SDK para embedear en tu app, MCP para operar con IA.",
+      "og:image": "https://nippy.mintlify.app/images/og.jpg",
+      "twitter:card": "summary_large_image",
+      "twitter:title": "Nippy API Platform",
+      "twitter:description": "Gamification SDK + MCP. Un solo engine, dos formas de integrarlo.",
+      "twitter:image": "https://nippy.mintlify.app/images/og.jpg"
+    }
+  },
   "navigation": {
     "languages": [
       {
